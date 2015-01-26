@@ -18,6 +18,9 @@ $locale['423'] = "Version";
 $locale['424'] = "Downloads";
 $locale['425'] = "Kommentarer";
 $locale['426'] = "Vurdering";
+$locale['427'] = "Kalender";
+$locale['428'] = "Information";
+$locale['429'] = "Downloadstatus";
 // Downloads Notices
 $locale['430'] = "Der endnu ikke defineret downloadkategorier";
 $locale['431'] = "Der er ikke tilføjet downloads til denne kategori";

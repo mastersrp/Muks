@@ -97,7 +97,7 @@ if (isset($_POST['delete_watermarks'])) {
 	if (!$result) { $error = 1; }
 	$result = dbquery("UPDATE ".DB_SETTINGS." SET settings_value='".(isnum($_POST['photo_max_b']) ? $_POST['photo_max_b'] : "512000")."' WHERE settings_name='photo_max_b'");
 	if (!$result) { $error = 1; }
-	$result = dbquery("UPDATE ".DB_SETTINGS." SET settings_value='".$_POST['thumb_compression']."' WHERE settings_name='thumb_compression'");
+	$result = dbquery("UPDATE ".DB_SETTINGS." SET settings_value='".stripinput($_POST['thumb_compression'])."' WHERE settings_name='thumb_compression'");
 	if (!$result) { $error = 1; }
 	$result = dbquery("UPDATE ".DB_SETTINGS." SET settings_value='".(isnum($_POST['thumbs_per_row']) ? $_POST['thumbs_per_row'] : "4")."' WHERE settings_name='thumbs_per_row'");
 	if (!$result) { $error = 1; }
@@ -111,11 +111,11 @@ if (isset($_POST['delete_watermarks'])) {
 	if (!$result) { $error = 1; }
 	$result = dbquery("UPDATE ".DB_SETTINGS." SET settings_value='".(isnum($_POST['photo_watermark_text']) ? $_POST['photo_watermark_text'] : "0")."' WHERE settings_name='photo_watermark_text'");
 	if (!$result) { $error = 1; }
-	$result = dbquery("UPDATE ".DB_SETTINGS." SET settings_value='".(preg_match("/([0-9A-F]){6}/i",$_POST['photo_watermark_text_color1']) ? $_POST['photo_watermark_text_color1'] : "FF6600")."' WHERE settings_name='photo_watermark_text_color1'");
+	$result = dbquery("UPDATE ".DB_SETTINGS." SET settings_value='".(preg_match("/^([0-9A-F]){6}$/i",$_POST['photo_watermark_text_color1']) ? $_POST['photo_watermark_text_color1'] : "FF6600")."' WHERE settings_name='photo_watermark_text_color1'");
 	if (!$result) { $error = 1; }
-	$result = dbquery("UPDATE ".DB_SETTINGS." SET settings_value='".(preg_match("/([0-9A-F]){6}/i",$_POST['photo_watermark_text_color2']) ? $_POST['photo_watermark_text_color2'] : "FFFF00")."' WHERE settings_name='photo_watermark_text_color2'");
+	$result = dbquery("UPDATE ".DB_SETTINGS." SET settings_value='".(preg_match("/^([0-9A-F]){6}$/i",$_POST['photo_watermark_text_color2']) ? $_POST['photo_watermark_text_color2'] : "FFFF00")."' WHERE settings_name='photo_watermark_text_color2'");
 	if (!$result) { $error = 1; }
-	$result = dbquery("UPDATE ".DB_SETTINGS." SET settings_value='".(preg_match("/([0-9A-F]){6}/i",$_POST['photo_watermark_text_color3']) ? $_POST['photo_watermark_text_color3'] : "FFFFFF")."' WHERE settings_name='photo_watermark_text_color3'");
+	$result = dbquery("UPDATE ".DB_SETTINGS." SET settings_value='".(preg_match("/^([0-9A-F]){6}$/i",$_POST['photo_watermark_text_color3']) ? $_POST['photo_watermark_text_color3'] : "FFFFFF")."' WHERE settings_name='photo_watermark_text_color3'");
 	if (!$result) { $error = 1; }
 
 	redirect(FUSION_SELF.$aidlink."&error=".$error);

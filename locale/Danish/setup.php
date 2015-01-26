@@ -4,8 +4,6 @@ $locale['sub-title'] = "PHP-Fusion version 7 installation";
 
 $locale['charset'] = "iso-8859-1";
 $locale['xml_lang'] = "da";
-$locale['mysql_charset'] = "latin1";
-$locale['mysql_collate'] = "latin1_swedish_ci";
 
 $locale['001'] = "Trin 1: Sprogvalg";
 $locale['002'] = "Trin 2: Test af tilladelser på filer og foldere";
@@ -126,6 +124,7 @@ $locale['127'] = "Downloads - opsætning";
 $locale['128'] = "Ændring af administrativt kodeord";
 $locale['129'] = "Fejllog";
 $locale['129a'] = "Brugerlog";
+$locale['129b'] = "robots.txt";
 // Step 6 - Navigation Links
 $locale['130'] = "Forside";
 $locale['131'] = "Artikler";

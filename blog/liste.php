@@ -1,20 +1,4 @@
 <?php
-/*-------------------------------------------------------+
-| PHP-Fusion Content Management System
-| Copyright (C) 2002 - 2011 Nick Jones
-| http://www.php-fusion.co.uk/
-+--------------------------------------------------------+
-| Filename: articles.php
-| Author: Nick Jones (Digitanium)
-+--------------------------------------------------------+
-| This program is released as free software under the
-| Affero GPL license. You can redistribute it and/or
-| modify it under the terms of this license which you
-| can read by viewing the included agpl.txt or online
-| at www.gnu.org/licenses/agpl.html. Removal of this
-| copyright header is strictly prohibited without
-| written permission from the original author(s).
-+--------------------------------------------------------*/
 require_once "../maincore.php";
 require_once THEMES."templates/header.php";
 if (!iMEMBER)
@@ -50,22 +34,29 @@ elseif ($list === 'blogs')
 
 if ($list !== 'blogs')
 {
-	echo '<table style="width: 100%;"  class="tbl-border forum_thread_table">';
+	echo '<table style="width: 100%;" class="tbl-border forum_thread_table">';
 	while ($blogarr = dbarray($bloglist))
 	{
 		echo '
 <tr>
-<td style="width: 20%;" class="tbl2 forum-caption">'.showdate('forumdate',$blogarr['bp_timestamp']).'</td>
-<td style="width: 80%;" class="tbl2 forum-caption">'.$blogarr['bp_title'].'</td>
+<td style="width: 25%;" class="tbl2 forum-caption">'.showdate('forumdate',$blogarr['bp_timestamp']).'</td>
+<td style="width: 75%;" class="tbl2 forum-caption">'.$blogarr['bp_title'].'</td>
 </tr>
 <tr>
-<td style="width: 20%;" class="tbl2 forum-caption">
-'.profile_link($blogarr['bp_author'], $blogarr['user_name'], $blogarr['user_status']).'<br />
-'.($data['user_avatar'] && file_exists(IMAGES."avatars/".$data['user_avatar']) && $data['user_status']!=6 && $data['user_status']!=5 ? "<img src='".IMAGES."avatars/".$data['user_avatar']."' alt='".$locale['567']."' /><br /><br />\n" : '').'
-Antal blogindlæg: '.$blogarr['user_blog'].'<br />
+<td style="width: 25%;" class="tbl2 forum-caption">
+'.profile_link($blogarr['bp_author'], $blogarr['user_name'], $blogarr['user_status']).'<br />';
+
+if ($blogarr['user_avatar'] && file_exists(IMAGES."avatars/".$blogarr['user_avatar']) && $blogarr['user_status']!=6 && $blogarr['user_status']!=5)
+{
+	echo "<img src='".IMAGES."avatars/".$blogarr['user_avatar']."' alt='Avatar' /><br /><br />\n";
+}
+
+echo 'Antal blogindlæg: '.$blogarr['user_blog'].'<br />
 <a href="/blog/liste.php?list='.$blogarr['user_id'].'">Se blog</a>
+'.(iADMIN || $blogarr['user_id'] == $userdata['user_id'] ? '<br /><a href="/blog/slet.php?id='.$blogarr['bp_id'].'" onclick="return confirm(\'Er du sikker på, du vil slette dette indlæg?\')">Slet indlæg</a>' : '').'
+<br /><a href="/report.php?action=new&amp;bp_id='.$blogarr['bp_id'].'">Anmeld</a>
 </td>
-<td style="width: 80%;" class="tbl1">'.nl2br(parseubb(phpentities($blogarr['bp_content']))).'</td>
+<td style="width: 75%;" class="tbl1">'.nl2br(parseubb(preg_replace('/\[(\/){0,1}img\]/','[$1url]',phpentities($blogarr['bp_content'])))).'</td>
 </tr>
 <tr>
 <td colSpan="2" style="width: 5px;">&nbsp;</td>

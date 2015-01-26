@@ -4,7 +4,7 @@
 | Copyright (C) 2002 - 2011 Nick Jones
 | http://www.php-fusion.co.uk/
 +--------------------------------------------------------+
-| Filename: latest_articles_panel.php
+| Filename: latest_comments_panel.php
 | Author: gh0st2k
 +--------------------------------------------------------+
 | This program is released as free software under the
@@ -43,7 +43,13 @@ if (dbrows($result)) {
 									");
 				if ($access > 0) {
 					$comment = trimlink($data['comment_message'], 23);
-					$output .= THEME_BULLET." <a href='".BASEDIR."news.php?readmore=".$data['comment_item_id']."#c".$data['comment_id']."' title='".$comment."' class='side'>".$comment."</a><br />\n";
+					$commentStart = dbcount("(comment_id)", DB_COMMENTS, "comment_item_id='".$data['comment_item_id']."' AND comment_type='N' AND comment_id<=".$data['comment_id']);
+					if ($commentStart > $settings['comments_per_page']) {
+						$commentStart = "&amp;c_start=".floor($commentStart / $settings['comments_per_page']) * $settings['comments_per_page'];
+					} else {
+						$commentStart = "";
+					}
+					$output .= THEME_BULLET." <a href='".BASEDIR."news.php?readmore=".$data['comment_item_id'].$commentStart."#c".$data['comment_id']."' title='".$comment."' class='side'>".$comment."</a><br />\n";
 					$i++;
 				}
 				continue;
@@ -56,7 +62,13 @@ if (dbrows($result)) {
 									");
 				if (dbrows($access) > 0) {
 					$comment = trimlink($data['comment_message'], 23);
-					$output .= THEME_BULLET." <a href='".BASEDIR."articles.php?article_id=".$data['comment_item_id']."#c".$data['comment_id']."' title='".$comment."' class='side'>".$comment."</a><br />\n";
+					$commentStart = dbcount("(comment_id)", DB_COMMENTS, "comment_item_id='".$data['comment_item_id']."' AND comment_type='A' AND comment_id<=".$data['comment_id']);
+					if ($commentStart > $settings['comments_per_page']) {
+						$commentStart = "&amp;c_start=".floor($commentStart / $settings['comments_per_page']) * $settings['comments_per_page'];
+					} else {
+						$commentStart = "";
+					}
+					$output .= THEME_BULLET." <a href='".BASEDIR."articles.php?article_id=".$data['comment_item_id'].$commentStart."#c".$data['comment_id']."' title='".$comment."' class='side'>".$comment."</a><br />\n";
 					$i++;
 				}
 				continue;
@@ -68,7 +80,13 @@ if (dbrows($result)) {
 									);
 				if (dbrows($access) > 0) {
 					$comment = trimlink($data['comment_message'], 23);
-					$output .= THEME_BULLET." <a href='".BASEDIR."photogallery.php?photo_id=".$data['comment_item_id']."#c".$data['comment_id']."' title='".$comment."' class='side'>".$comment."</a><br />\n";
+					$commentStart = dbcount("(comment_id)", DB_COMMENTS, "comment_item_id='".$data['comment_item_id']."' AND comment_type='P' AND comment_id<=".$data['comment_id']);
+					if ($commentStart > $settings['comments_per_page']) {
+						$commentStart = "&amp;c_start=".floor($commentStart / $settings['comments_per_page']) * $settings['comments_per_page'];
+					} else {
+						$commentStart = "";
+					}
+					$output .= THEME_BULLET." <a href='".BASEDIR."photogallery.php?photo_id=".$data['comment_item_id'].$commentStart."#c".$data['comment_id']."' title='".$comment."' class='side'>".$comment."</a><br />\n";
 					$i++;
 				}
 				continue;
@@ -76,7 +94,13 @@ if (dbrows($result)) {
 				$access = dbcount("(page_id)", DB_CUSTOM_PAGES, "page_id='".$data['comment_item_id']."' AND ".groupaccess('page_access'));
 				if ($access > 0) {
 					$comment = trimlink($data['comment_message'], 23);
-					$output .= THEME_BULLET." <a href='".BASEDIR."viewpage.php?page_id=".$data['comment_item_id']."#c".$data['comment_id']."' title='".$comment."' class='side'>".$comment."</a><br />\n";
+					$commentStart = dbcount("(comment_id)", DB_COMMENTS, "comment_item_id='".$data['comment_item_id']."' AND comment_type='C' AND comment_id<=".$data['comment_id']);
+					if ($commentStart > $settings['comments_per_page']) {
+						$commentStart = "&amp;c_start=".floor($commentStart / $settings['comments_per_page']) * $settings['comments_per_page'];
+					} else {
+						$commentStart = "";
+					}
+					$output .= THEME_BULLET." <a href='".BASEDIR."viewpage.php?page_id=".$data['comment_item_id'].$commentStart."#c".$data['comment_id']."' title='".$comment."' class='side'>".$comment."</a><br />\n";
 					$i++;
 				}
 				continue;
@@ -88,7 +112,13 @@ if (dbrows($result)) {
 									);
 				if (dbrows($access) > 0) {
 					$comment = trimlink($data['comment_message'], 23);
-					$output .= THEME_BULLET." <a href='".BASEDIR."downloads.php?download_id=".$data['comment_item_id']."#c".$data['comment_id']."' title='".$comment."' class='side'>".$comment."</a><br />\n";
+					$commentStart = dbcount("(comment_id)", DB_COMMENTS, "comment_item_id='".$data['comment_item_id']."' AND comment_type='D' AND comment_id<=".$data['comment_id']);
+					if ($commentStart > $settings['comments_per_page']) {
+						$commentStart = "&amp;c_start=".floor($commentStart / $settings['comments_per_page']) * $settings['comments_per_page'];
+					} else {
+						$commentStart = "";
+					}
+					$output .= THEME_BULLET." <a href='".BASEDIR."downloads.php?download_id=".$data['comment_item_id'].$commentStart."#c".$data['comment_id']."' title='".$comment."' class='side'>".$comment."</a><br />\n";
 					$i++;
 				}
 				continue;

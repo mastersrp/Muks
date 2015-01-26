@@ -21,77 +21,119 @@ global $lastvisited;
 
 if (!isset($lastvisited) || !isnum($lastvisited)) { $lastvisited = time(); }
 
-$data = dbarray(dbquery(
-	"SELECT tt.thread_lastpost
-	FROM ".DB_FORUMS." tf
-	INNER JOIN ".DB_THREADS." tt ON tf.forum_id = tt.forum_id
-	WHERE ".groupaccess('tf.forum_access')." AND thread_hidden='0'
-	ORDER BY tt.thread_lastpost DESC LIMIT 10, ".$settings['numofthreads']
-));
 
-$timeframe = empty($data['thread_lastpost']) ? 0 : $data['thread_lastpost'];
+
+opentable($locale['global_040']);
+
+/* Ikke chat */
+
+$timeframe = 0;
 
 $result = dbquery(
-	"SELECT tt.thread_id, tt.thread_subject, tt.thread_views, tt.thread_lastuser, tt.thread_lastpost, tt.thread_lastpost_alias,
-	tt.thread_poll, tf.forum_id, tf.forum_name, tf.forum_access, tt.thread_lastpostid, tt.thread_postcount, tu.user_id, tu.user_name, tu.user_aliases,
-	tu.user_status
+	"SELECT tt.thread_id, tt.thread_subject, tt.thread_lastuser, tt.thread_lastpost, tt.thread_lastpost_alias,
+	tt.thread_poll, tf.forum_id, tf.forum_name, tf.forum_access, tt.thread_lastpostid, tu.user_id, tu.user_name,
+	tu.user_status, tu.user_aliases
 	FROM ".DB_THREADS." tt
 	INNER JOIN ".DB_FORUMS." tf ON tt.forum_id=tf.forum_id
 	INNER JOIN ".DB_USERS." tu ON tt.thread_lastuser=tu.user_id
-	WHERE ".groupaccess('tf.forum_access')." AND tt.thread_lastpost >= ".$timeframe." AND tt.thread_hidden='0'
-	ORDER BY tt.thread_lastpost DESC LIMIT 0,".$settings['numofthreads']
+	WHERE ".groupaccess('tf.forum_access')." AND tt.thread_lastpost >= ".$timeframe." AND tt.thread_hidden='0' AND tt.forum_id != 10
+	ORDER BY tt.thread_lastpost DESC LIMIT 0, 15"
 );
 
 if (dbrows($result)) {
 	$i = 0;
-	opentable($locale['global_040']);
-	echo "<table cellpadding='0' cellspacing='1' width='100%' class='tbl-border'>\n<tr>\n";
-	echo "<td class='tbl2'>&nbsp;</td>\n";
-	echo "<td width='100%' class='tbl2'><strong>".$locale['global_044']."</strong></td>\n";
-//	echo "<td width='1%' class='tbl2' style='text-align:center;white-space:nowrap'><strong>".$locale['global_045']."</strong></td>\n";
-//	echo "<td width='1%' class='tbl2' style='text-align:center;white-space:nowrap'><strong>".$locale['global_046']."</strong></td>\n";
-	echo "<td width='1%' class='tbl2' style='text-align:center;white-space:nowrap'><strong>".$locale['global_047']."</strong></td>\n";
+	echo "<table cellpadding='0' cellspacing='1' style='width: 50%; float: left;' class='tbl-border'>\n<tr>\n";
+	echo "<td style='width: 70%; margin: 0px;' class='tbl2'><strong>".$locale['global_044']."</strong></td>\n";
+	echo "<td class='tbl2' style='text-align:center;white-space:nowrap; margin: 0px;'><strong>Nyeste</strong></td>\n";
 	echo "</tr>\n";
 	while ($data = dbarray($result)) {
-		echo "<tr>\n";
-
 		$row_color = ($i % 2 == 0 ? "tbl1" : "tbl2");
-		echo "<tr>\n<td class='".$row_color."'>";
+		echo "<tr>\n";
 		if ($data['thread_lastpost'] > $lastvisited) {
 			$thread_match = $data['thread_id']."\|".$data['thread_lastpost']."\|".$data['forum_id'];
 			if (iMEMBER && ($data['thread_lastuser'] == $userdata['user_id'] || preg_match("(^\.{$thread_match}$|\.{$thread_match}\.|\.{$thread_match}$)", $userdata['user_threads']))) {
-				echo "<img src='".get_image("folder")."' alt='' />";
+				$boldynew = false;
 			} else {
-				echo "<img src='".get_image("foldernew")."' alt='' />";
+				$boldynew = true;
 			}
 		} else {
-			echo "<img src='".get_image("folder")."' alt='' />";
+			$boldynew = false;
 		}
-
 		if ($data['thread_poll']) {
 			$thread_poll = "<span class='small' style='font-weight:bold'>[".$locale['global_051']."]</span> ";
 		} else {
 			$thread_poll = "";
 		}
-		echo "</td>\n";
 
-		echo "<td width='100%' class='".$row_color."'>".$thread_poll."<a href='".FORUM."viewthread.php?thread_id=".$data['thread_id']."&amp;pid=".$data['thread_lastpostid']."#post_".$data['thread_lastpostid']."' title='".$data['thread_subject']."'>".trimlink($data['thread_subject'], 30)."</a><br />\n".$data['forum_name']."</td>\n";
-//		echo "<td width='1%' class='".$row_color."' style='text-align:center;white-space:nowrap'>".$data['thread_views']."</td>\n";
-//		echo "<td width='1%' class='".$row_color."' style='text-align:center;white-space:nowrap'>".($data['thread_postcount']-1)."</td>\n";
-		echo "<td width='1%' class='".$row_color."' style='text-align:center;white-space:nowrap'>".alias2($data['thread_lastpost_alias'], alias1($data['user_aliases']), $data['thread_lastuser'], $data['user_name'], $data['user_status'])."<br />\n".showdate("forumdate", $data['thread_lastpost'])."</td>\n";
+		echo "<td style=' width: 90px; margin: 0px; font-size: 7pt;' class='".$row_color."'>".($boldynew ? '<b>' : '').$thread_poll."<a href='".FORUM."viewthread.php?thread_id=".$data['thread_id']."&amp;pid=".$data['thread_lastpostid']."#post_".$data['thread_lastpostid']."' title='".$data['thread_subject']."'>".trimlink(preg_replace('/([^\s]{20})([^\s]+)/','$1 $2 ', $data['thread_subject']), 70)."</a><br />\n".$data['forum_name'].($boldynew ? '</b>' : '')."</td>\n";
+		echo "<td class='".$row_color."' style='text-align:center;white-space:nowrap; margin: 0px; font-size: 7pt;'>".alias2($data['thread_lastpost_alias'],trimlink(alias1($data['user_aliases']), 14),$data['thread_lastuser'], trimlink($data['user_name'], 14), $data['user_status'])."<br />\n".showdate("%d-%m-%y %H:%M:%S", $data['thread_lastpost'])."</td>\n";
 		echo "</tr>\n";
 		$i++;
 	}
 	echo "</table>\n";
-	if (iMEMBER) {
-		echo "<div class='tbl1' style='text-align:center'><a href='".INFUSIONS."forum_threads_list_panel/my_threads.php'>".$locale['global_041']."</a> ::\n";
-		echo "<a href='".INFUSIONS."forum_threads_list_panel/my_posts.php'>".$locale['global_042']."</a> ::\n";
-		echo "<a href='".INFUSIONS."forum_threads_list_panel/new_posts.php'>".$locale['global_043']."</a>";
-		if($settings['thread_notify']) {
-			echo " ::\n<a href='".INFUSIONS."forum_threads_list_panel/my_tracked_threads.php'>".$locale['global_056']."</a>";
-		}
-		echo "</div>\n";
-	}
-	closetable();
+
 }
+
+/* Chat */
+
+$timeframe = 0;
+
+$result = dbquery(
+	"SELECT tt.thread_id, tt.thread_subject, tt.thread_lastuser, tt.thread_lastpost, tt.thread_lastpost_alias,
+	tt.thread_poll, tf.forum_id, tf.forum_name, tf.forum_access, tt.thread_lastpostid, tu.user_id, tu.user_name,
+	tu.user_status, tu.user_aliases
+	FROM ".DB_THREADS." tt
+	INNER JOIN ".DB_FORUMS." tf ON tt.forum_id=tf.forum_id
+	INNER JOIN ".DB_USERS." tu ON tt.thread_lastuser=tu.user_id
+	WHERE ".groupaccess('tf.forum_access')." AND tt.thread_lastpost >= ".$timeframe." AND tt.thread_hidden='0' AND tt.forum_id = 10
+	ORDER BY tt.thread_lastpost DESC LIMIT 0, 15"
+);
+
+if (dbrows($result)) {
+	$i = 0;
+	echo "<table cellpadding='0' cellspacing='1' style='width: 50%; float: left;' class='tbl-border'>\n<tr>\n";
+	echo "<td style='width: 70%; margin: 0px;' class='tbl2'><strong>Chat emne</strong></td>\n";
+	echo "<td class='tbl2' style='text-align:center;white-space:nowrap; margin: 0px;'><strong>Nyeste</strong></td>\n";
+	echo "</tr>\n";
+	while ($data = dbarray($result)) {
+		$row_color = ($i % 2 == 0 ? "tbl1" : "tbl2");
+		echo "<tr>\n";
+		if ($data['thread_lastpost'] > $lastvisited) {
+			$thread_match = $data['thread_id']."\|".$data['thread_lastpost']."\|".$data['forum_id'];
+			if (iMEMBER && ($data['thread_lastuser'] == $userdata['user_id'] || preg_match("(^\.{$thread_match}$|\.{$thread_match}\.|\.{$thread_match}$)", $userdata['user_threads']))) {
+				$boldynew = false;
+			} else {
+				$boldynew = true;
+			}
+		} else {
+			$boldynew = false;
+		}
+		if ($data['thread_poll']) {
+			$thread_poll = "<span class='small' style='font-weight:bold'>[".$locale['global_051']."]</span> ";
+		} else {
+			$thread_poll = "";
+		}
+
+		echo "<td style=' width: 90px; margin: 0px; font-size: 7pt;' class='".$row_color."'>".($boldynew ? '<b>' : '').$thread_poll."<a href='".FORUM."viewthread.php?thread_id=".$data['thread_id']."&amp;pid=".$data['thread_lastpostid']."#post_".$data['thread_lastpostid']."' title='".$data['thread_subject']."'>".trimlink(preg_replace('/([^\s]{20})([^\s]+)/','$1 $2 ', $data['thread_subject']), 70)."</a><br />\n".$data['forum_name'].($boldynew ? '</b>' : '')."</td>\n";
+		echo "<td class='".$row_color."' style='text-align:center;white-space:nowrap; margin: 0px; font-size: 7pt;'>".alias2($data['thread_lastpost_alias'],trimlink(alias1($data['user_aliases']), 14),$data['thread_lastuser'], trimlink($data['user_name'], 14), $data['user_status'])."<br />\n".showdate("%d-%m-%y %H:%M:%S", $data['thread_lastpost'])."</td>\n";
+		echo "</tr>\n";
+		$i++;
+	}
+	echo "</table>\n";
+
+}
+
+echo "<div style='clear: both;'></div>";
+
+
+if (iMEMBER) {
+	echo "<div class='tbl1' style='text-align:center'><a href='".INFUSIONS."forum_threads_list_panel/my_threads.php'>".$locale['global_041']."</a> ::\n";
+	echo "<a href='".INFUSIONS."forum_threads_list_panel/my_posts.php'>".$locale['global_042']."</a> ::\n";
+	echo "<a href='".INFUSIONS."forum_threads_list_panel/new_posts.php'>".$locale['global_043']."</a>";
+	if($settings['thread_notify']) {
+		echo " ::\n<a href='".INFUSIONS."forum_threads_list_panel/my_tracked_threads.php'>".$locale['global_056']."</a>";
+	}
+	echo "</div>\n";
+}
+closetable();
 ?>

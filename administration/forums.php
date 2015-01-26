@@ -16,6 +16,7 @@
 | written permission from the original author(s).
 +--------------------------------------------------------*/
 require_once "../maincore.php";
+require_once INCLUDES."bbcode_include.php";
 
 if (!checkrights("F") || !defined("iAUTH") || !isset($_GET['aid']) || $_GET['aid'] != iAUTH) { redirect("../index.php"); }
 
@@ -76,7 +77,7 @@ if (isset($_POST['save_cat'])) {
 			$cat_order = isnum($_POST['cat_order']) ? $_POST['cat_order'] : "";
 			if(!$cat_order) $cat_order=dbresult(dbquery("SELECT MAX(forum_order) FROM ".DB_FORUMS." WHERE forum_cat='0'"),0)+1;
 			$result = dbquery("UPDATE ".DB_FORUMS." SET forum_order=forum_order+1 WHERE forum_cat='0' AND forum_order>='$cat_order'");
-			$result = dbquery("INSERT INTO ".DB_FORUMS." (forum_cat, forum_name, forum_order, forum_description, forum_moderators, forum_access, forum_post, forum_reply, forum_poll, forum_vote, forum_attach, forum_lastpost, forum_lastuser, forum_lastpost_alias) VALUES ('0', '$cat_name', '$cat_order', '', '', '0', '0', '0', '0', '0', '0', '0', '0', '-1')");
+			$result = dbquery("INSERT INTO ".DB_FORUMS." (forum_cat, forum_name, forum_order, forum_description, forum_moderators, forum_access, forum_post, forum_reply, forum_poll, forum_vote, forum_attach, forum_lastpost, forum_lastuser, forum_lastpost_alias) VALUES ('0', '$cat_name', '$cat_order', '', '', '0', '0', '0', '0', '0', '0', '0', '0','-1')");
 			redirect(FUSION_SELF.$aidlink."&status=savecn");
 		}
 	} else {
@@ -105,7 +106,7 @@ if (isset($_POST['save_cat'])) {
 			$forum_order = isnum($_POST['forum_order']) ? $_POST['forum_order'] : "";
 			if(!$forum_order) $forum_order=dbresult(dbquery("SELECT MAX(forum_order) FROM ".DB_FORUMS." WHERE forum_cat='$forum_cat'"),0)+1;
 			$result = dbquery("UPDATE ".DB_FORUMS." SET forum_order=forum_order+1 WHERE forum_cat='$forum_cat' AND forum_order>='$forum_order'");
-			$result = dbquery("INSERT INTO ".DB_FORUMS." (forum_cat, forum_name, forum_order, forum_description, forum_moderators, forum_access, forum_post, forum_reply, forum_attach, forum_attach_download, forum_poll, forum_vote, forum_lastpost, forum_lastuser, forum_lastpost_alias, forum_merge) VALUES ('".$forum_cat."', '".$forum_name."', '".$forum_order."', '".$forum_description."', '103', '101', '101', '101', '0', '0', '0', '0', '0', '0', '-1', '0')");
+			$result = dbquery("INSERT INTO ".DB_FORUMS." (forum_cat, forum_name, forum_order, forum_description, forum_moderators, forum_access, forum_post, forum_reply, forum_attach, forum_attach_download, forum_poll, forum_vote, forum_lastpost, forum_lastuser, forum_merge, forum_lastpost_alias) VALUES ('".$forum_cat."', '".$forum_name."', '".$forum_order."', '".$forum_description."', '103', '101', '101', '101', '0', '0', '0', '0', '0', '0', '0', '-1')");
 			redirect(FUSION_SELF.$aidlink."&status=savefn");
 		}
 	} else {
@@ -260,7 +261,8 @@ if (isset($_POST['save_cat'])) {
 			echo "<input type='text' name='forum_name' value='".$forum_name."' class='textbox' style='width:285px;' /></td>\n";
 			echo "</tr>\n<tr>\n";
 			echo "<td colspan='2' class='tbl'>".$locale['521']."<br />\n";
-			echo "<input type='text' name='forum_description' value='".$forum_description."' class='textbox' style='width:285px;' /></td>\n";
+			echo "<textarea type='text' name='forum_description' cols='70' rows='4' class='textbox' style='width:98%'>".$forum_description."</textarea><br />\n";
+			echo display_bbcodes("280px;", "forum_description", "addforum", "b|i|u|color|url|center|size|big|small")."</td>\n";
 			echo "</tr>\n<tr>\n";
 			echo "<td class='tbl'>".$locale['522']."<br />\n";
 			echo "<select name='forum_cat' class='textbox' style='width:225px;'>\n".$cat_opts."</select></td>\n";
@@ -344,7 +346,8 @@ if (isset($_POST['save_cat'])) {
 				echo "<td align='center' colspan='2'><br />\n";
 				echo "<input type='hidden' name='forum_mods' />\n";
 				echo "<input type='hidden' name='save_forum' />\n";
-				echo "<input type='button' name='save' value='".$locale['532']."' class='button' onclick='saveMods();' /></td>\n";
+				echo "<input type='button' name='save' value='Gem 1' class='button' onclick='saveMods();' />";
+				echo "<input type='submit' value='Gem 2' class='button' /> (Tryk først på Gem 1, så Gem 2)</td>\n";
 				echo "</tr>\n</table>\n</form>\n";
 				echo "<script type='text/javascript'>\n"."function addUser(toGroup,fromGroup) {\n";
 				echo "var listLength = document.getElementById(toGroup).length;\n";
@@ -364,9 +367,9 @@ if (isset($_POST['save_cat'])) {
 				echo "if (count == 0) {\n"."strValues = document.getElementById('modlist2').options[i].value;\n";
 				echo "} else {\n"."strValues = strValues + \".\" + document.getElementById('modlist2').options[i].value;\n";
 				echo "}\n"."count++;\n}\n}\n";
-				echo "if (strValues.length == 0) {\n"."document.forms['addforum'].submit();\n";
-				echo "} else {\n"."document.forms['addforum'].forum_mods.value = strValues;\n";
-				echo "document.forms['addforum'].submit();\n}\n}\n</script>\n";
+				echo "if (strValues.length != 0) {\n";
+				echo "document.forms['addforum'].forum_mods.value = strValues;\n";
+				echo "\n}\n}\n</script>\n";
 			}
 			closetable();
 	}
@@ -408,7 +411,7 @@ if (isset($_POST['save_cat'])) {
 					echo "<tr>\n";
 					echo "<td class='tbl1'><span class='alt'>".$data2['forum_name']."</span>\n";
 					echo "[<a href='".FUSION_SELF.$aidlink."&amp;action=prune&amp;forum_id=".$data2['forum_id']."'>".$locale['563']."</a>]<br />\n";
-					echo ($data2['forum_description'] ? "<span class='small'>".$data2['forum_description']."</span>" : "")."</td>\n";
+					echo ($data2['forum_description'] ? "<span class='small'>".nl2br(parseubb($data2['forum_description']))."</span>" : "")."</td>\n";
 					echo "<td align='center' width='1%' class='tbl2' style='white-space:nowrap'>".$data2['forum_order']."</td>\n";
 					echo "<td align='center' width='1%' class='tbl1' style='white-space:nowrap'>\n";
 					if (dbrows($result2) != 1) {

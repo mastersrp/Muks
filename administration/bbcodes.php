@@ -15,6 +15,11 @@
 | copyright header is strictly prohibited without
 | written permission from the original author(s).
 +--------------------------------------------------------*/
+if (isset($__BBCODE__))
+{
+	unset($__BBCODE__);
+}
+
 require_once "../maincore.php";
 
 if (!checkrights("BB") || !defined("iAUTH") || !isset($_GET['aid']) || $_GET['aid'] != iAUTH) { redirect("../index.php"); }
@@ -50,7 +55,7 @@ if ($_GET['page'] == 1) {
 		if (substr($_GET['enable'], 0, 1)!='!') {
 			$data2 = dbarray(dbquery("SELECT MAX(bbcode_order) AS xorder FROM ".DB_BBCODES));
 			$order = ($data2['xorder']==0?1:($data2['xorder']+1));
-			$result = dbquery("INSERT INTO ".DB_BBCODES." (bbcode_name, bbcode_order) VALUES ('".$_GET['enable']."', '".$order."')");
+			$result = dbquery("INSERT INTO ".DB_BBCODES." (bbcode_name, bbcode_order) VALUES ('".addslash($_GET['enable'])."', '".$order."')");
 		} else {
 			$result2 = dbcount("(bbcode_id)", DB_BBCODES);
 			if (!empty($result2)) {

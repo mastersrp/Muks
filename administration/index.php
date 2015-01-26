@@ -36,7 +36,7 @@ if (!$default) { redirect("../index.php"); }
 if (!$pages[$_GET['pagenum']]) { redirect("index.php".$aidlink."&pagenum=$default"); }
 
 // Display admin panels & pages
-opentable($locale['200']." - v".$settings['version']);
+opentable($locale['200'].(iSUPERADMIN ? " - v".$settings['version'] : '').' | <a href="/reports.php" style="text-decoration: underline; color: inherit;">Se anmeldelser</a>');
 echo "<table cellpadding='0' cellspacing='1' width='100%' class='tbl-border'>\n<tr>\n";
 for ($i = 1; $i < 6; $i++) {
 	$class = ($_GET['pagenum'] == $i ? "tbl1" : "tbl2");

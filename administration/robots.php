@@ -86,6 +86,7 @@ if (isset($_POST['set_default'])) {
 	$robots_content .= "Disallow: /administration/\n";
 	$robots_content .= "Disallow: /locale/\n";
 	$robots_content .= "Disallow: /themes/\n";
+	$robots_content .= "Disallow: /print.php\n";
 	if (!is_writable($file)) {
 		$error = 1;
 	}

@@ -15,6 +15,11 @@
 | copyright header is strictly prohibited without
 | written permission from the original author(s).
 +--------------------------------------------------------*/
+if (isset($error_message))
+{
+	unset($error_message);
+}
+
 require_once "../maincore.php";
 
 if (!checkrights("WC") || !defined("iAUTH") || !isset($_GET['aid']) || $_GET['aid'] != iAUTH) redirect("../index.php");

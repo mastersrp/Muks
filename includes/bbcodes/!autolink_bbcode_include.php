@@ -25,7 +25,7 @@ if(!function_exists("bbcode_off")) {
 			$text = str_replace("]", "&#93; ", $text);
 		}
 		if($part == 2) {
-			$text = preg_replace("^<a href='(.*?)' target='_blank' title='autolink'>(.*?)</a>^si", "\\1", $text);
+			$text = preg_replace("^<a href='(.*?)' target='_blank' rel='nofollow' title='autolink'>(.*?)</a>^si", "\\1", $text);
 			$text = str_replace(" &#91;", "&#91;", $text);
 			$text = str_replace("&#93; ", "&#93;", $text);
 		}
@@ -39,8 +39,8 @@ if($phpp = substr_count($text, "[php]") > 0) $text = preg_replace("#\[code\](.*?
 
 $text = str_replace(array("]","&gt;", "[", "&lt;"), array("]&nbsp;", "&gt; ", " &nbsp;[", " &lt;"), $text);
 
-$text = preg_replace('#(^|[\n ])((http|https|ftp|ftps)://[\w\#$%&~/.\-;:=,?@\[\]\(\)+]*)#sie', "'\\1<a href=\''.trim('\\2').'\' target=\'_blank\' title=\'autolink\'>'.trimlink('\\2', 20).(strlen('\\2')>30?substr('\\2', strlen('\\2')-10, strlen('\\2')):'').' </a>'", $text);
-$text = preg_replace("#(^|[\n ])((www|ftp)\.[\w\#$%&~/.\-;:=,?@\[\]\(\)+]*)#sie", "'\\1<a href=\'http://'.trim('\\2').'\' target=\'_blank\' title=\'autolink\'>'.trimlink('\\2', 20).(strlen('\\1')>30?substr('\\2', strlen('\\2')-10, strlen('\\2')):'').' </a>'", $text);
+$text = preg_replace('#(^|[\n ])((http|https|ftp|ftps)://[\w\#$%&~/.\-;:=,?@\[\]\(\)+]*)#sie', "'\\1<a href=\''.trim('\\2').'\' target=\'_blank\' rel=\'nofollow\' title=\'autolink\'>'.trimlink('\\2', 20).(strlen('\\2')>30?substr('\\2', strlen('\\2')-10, strlen('\\2')):'').' </a>'", $text);
+$text = preg_replace("#(^|[\n ])((www|ftp)\.[\w\#$%&~/.\-;:=,?@\[\]\(\)+]*)#sie", "'\\1<a href=\'http://'.trim('\\2').'\' target=\'_blank\' rel=\'nofollow\' title=\'autolink\'>'.trimlink('\\2', 20).(strlen('\\1')>30?substr('\\2', strlen('\\2')-10, strlen('\\2')):'').' </a>'", $text);
 $text = preg_replace("#([a-z0-9&\-_.]+?)@([\w\-]+\.([\w\-\.]+\.)*[\w]+)#sie", "hide_email('\\1@\\2')", $text);
 
 if($codde > 0) $text = preg_replace("#\[code\](.*?)\[/code\]#sie", "'[code]'.bbcode_off('\\1', '2').'[/code]'", $text);

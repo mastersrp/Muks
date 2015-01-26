@@ -31,8 +31,8 @@ class UserFields {
 	public $showAvatarInput 			= true;
 	public $skipCurrentPass 			= false;
 	public $registration				= false;
-	public $userData 					= array("user_name", "user_password", "user_admin_password", "user_email");
-
+	public $userData 					= array("user_name", "user_password", "user_admin_password", "user_email", "user_title");
+	
 	private $html						= "";
 	private $js							= "";
 	private $javaScriptOther;
@@ -68,11 +68,13 @@ class UserFields {
 		$this->js .= "				return false;\n";
 		$this->js .= "			}\n";
 		$this->js .= "			$(frm.user_new_password2).removeClass(\"tbl-error\");\n";
-		$this->js .= "			if ($(frm.user_password).val() == \"\") {\n";
-		$this->js .= "				$(frm.user_password).addClass(\"tbl-error\");\n";
-		$this->js .= "				alert(\"".$locale['u138']."\");\n";
-		$this->js .= "				return false;\n";
-		$this->js .= "			}\n";
+		if ($this->registration == false) {
+			$this->js .= "			if ($(frm.user_password).val() == \"\") {\n";
+			$this->js .= "				$(frm.user_password).addClass(\"tbl-error\");\n";
+			$this->js .= "				alert(\"".$locale['u138']."\");\n";
+			$this->js .= "				return false;\n";
+			$this->js .= "			}\n";
+		}
 		$this->js .= "			$(frm.user_password).removeClass(\"tbl-error\");\n";
 		$this->js .= "			if ($(frm.user_new_password).val() == $(frm.user_password).val()) {\n";
 		$this->js .= "				$(frm.user_new_password).addClass(\"tbl-error\");\n";
@@ -184,40 +186,32 @@ class UserFields {
 		// Login Password
 		$passRequired = $this->skipCurrentPass ? $locale['u136'] : "";
 		$passRequired = $this->isAdminPanel ? "" : $passRequired;
-		$this->html .= "<tr>\n<td colspan='2' class='profile_category_name tbl2'><strong>".$locale['u133']."</strong></td>\n</tr>\n";
+		$this->html .= "<tr>\n<td colspan='2' class='profile_category_name tbl2'><strong>".$locale['u132']."</strong></td>\n</tr>\n";
 		if (!$this->skipCurrentPass) {
 			$this->html .= $this->basicInputField("user_password", $locale['u133'], "64", "", "password", false, "user_password");
 		}
-		$this->html .= $this->basicInputField("user_new_password", $locale['u134'], "64", $passRequired, "password", false, "user_password");
+		$this->html .= $this->basicInputField("user_new_password", ($this -> registration == TRUE ? $locale['u133'] : $locale['u134']), "64", $passRequired, "password", false, "user_password");
 		$this->html .= "<tr>\n<td class='tbl'></td>\n<td class='tbl'><span class='small2'>".$locale['u147']."</span></td>\n</tr>\n";
 		$this->html .= $this->basicInputField("user_new_password2", $locale['u135'], "64", $passRequired, "password", false, "user_password");
 
 		// Admin Password
 		if ($this->showAdminPass && iADMIN) {
-			$this->html .= "<tr>\n<td colspan='2' class='profile_category_name tbl2'><strong>".$locale['u131']."</strong></td></tr>\n";
+			$this->html .= "<tr>\n<td colspan='2' class='profile_category_name tbl2'><strong>".$locale['u132']."</strong></td></tr>\n";
 			if ($this->userData['user_admin_password']) {
 				$this->html .= $this->basicInputField("user_admin_password", $locale['u131'], "64", "", "password", false, "user_admin_password");
 			}
-			$this->html .= $this->basicInputField("user_new_admin_password", $locale['u144'], "64", "", "password", false, "user_admin_password");
+			$this->html .= $this->basicInputField("user_new_admin_password", ($this -> userData['user_admin_password'] ? $locale['u144'] : $locale['u131']), "64", "", "password", false, "user_admin_password");
 			$this->html .= "<tr>\n<td class='tbl'></td>\n<td class='tbl'><span class='small2'>".$locale['u147']."</span></td>\n</tr>\n";
 			$this->html .= $this->basicInputField("user_new_admin_password2", $locale['u145'], "64", "", "password", false, "user_admin_password");
 		}
-
-
-		// Hide email
-
+		
+		//Email & Username
 		$this->html .= "<tr>\n<td colspan='2' class='profile_category_name tbl2'><strong>".$locale['u129']."</strong></td></tr>\n";
 		$this->html .= (iADMIN || $this->_userNameChange ? $this->basicInputField("user_name", $locale['u127'], "30", $locale['u122']) : "");
 		$this->html .= $this->basicInputField("user_email", $locale['u128'], "100", $locale['u126']);
-/*
 		$hide = isset($this->userData['user_hide_email']) ? $this->userData['user_hide_email'] : 1;
 		$hide = isset($_POST['user_hide_email']) && isnum($_POST['user_hide_email']) ? $_POST['user_hide_email'] : $hide;
-		$this->html .= "<tr>\n";
-		$this->html .= "<td class='tbl'>".$locale['u051']."</td>\n<td class='tbl'>";
-		$this->html .= "<label><input type='radio' name='user_hide_email' value='1'".($hide == 1 ? " checked='checked'" : "")." />".$locale['u052']."</label>\n";
-		$this->html .= "<label><input type='radio' name='user_hide_email' value='0'".($hide == 0 ? " checked='checked'" : "")." />".$locale['u053']."</label>";
-		$this->html .= "</td>\n</tr>\n";
-*/
+
 		// User Avatar
 		if ($this->showAvatarInput) { $this->renderAvatarInput(); }
 	}
@@ -244,12 +238,8 @@ class UserFields {
 		$rowspan = 4;
 
 		$this->html .= "<table cellpadding='0' cellspacing='1' width='400' class='profile tbl-border center'>\n";
-		$returnFields = $this->basicOutputField($locale['u063'], getuserlevel($this->userData['user_level']), "profile_user_level");
-		if (iADMIN) {
-			$rowspan = $rowspan+1;
-			$returnFields .= $this->basicOutputField($locale['u064'], hide_email($this->userData['user_email']), "profile_user_email");
-		}
-		$lastVisit = $this->userData['user_lastvisit'] ? strftime('%d/%m/%Y',$this->userData['user_lastvisit']) : $locale['u042'];
+		$returnFields = $this->basicOutputField($locale['u063'], $this->userData['user_title'], "profile_user_level");
+		$lastVisit = $this->userData['user_lastvisit'] ? showdate("%d/%m/%y", $this->userData['user_lastvisit']) : $locale['u042'];
 		$returnFields .= $this->basicOutputField($locale['u066'], showdate("longdate", $this->userData['user_joined']), "profile_user_joined");
 		$returnFields .= $this->basicOutputField($locale['u067'], $lastVisit, "profile_user_visit");
 
@@ -327,6 +317,7 @@ class UserFields {
 		$this->html .= "<a href='".ADMIN."members.php".$aidlink."&amp;action=1&amp;user_id=".$this->userData['user_id']."'>".$locale['u070']."</a> ::\n";
 		$this->html .= "<a href='".ADMIN."members.php".$aidlink."&amp;action=3&amp;user_id=".$this->userData['user_id']."'>".$locale['u071']."</a> ::\n";
 		$this->html .= "<a href='".ADMIN."members.php".$aidlink."&amp;step=delete&amp;status=0&amp;user_id=".$this->userData['user_id']."' onclick=\"return confirm('".$locale['u073']."');\">".$locale['u072']."</a>\n";
+		$this->html .= "</td>\n";
 		if (count($groups_cache) > 0) {
 			foreach($groups_cache as $group) {
 				if (!preg_match("(^{$group['group_id']}|\.{$group['group_id']}\.|\.{$group['group_id']}$)", $this->userData['user_groups'])) {

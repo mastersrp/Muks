@@ -73,7 +73,7 @@ if (isset($_GET['action']) && $_GET['action'] == "refresh") {
 	$result = dbquery("SELECT field_cat FROM ".DB_USER_FIELDS." WHERE field_id='".$_GET['field_id']." LIMIT 1'");
 	if (dbrows($result)) {
 		$data = dbarray($result);
-		$result = dbquery("SELECT field_id FROM ".DB_USER_FIELDS." WHERE field_cat='".$data2['field_cat']."' AND field_order='".intval($_GET['order'])."'");
+		$result = dbquery("SELECT field_id FROM ".DB_USER_FIELDS." WHERE field_cat='".$data['field_cat']."' AND field_order='".intval($_GET['order'])."'");
 	}
 	if (dbrows($result)) {
 		$data = dbarray($result);
@@ -82,6 +82,7 @@ if (isset($_GET['action']) && $_GET['action'] == "refresh") {
 	}
 	redirect(FUSION_SELF.$aidlink);
 } elseif (isset($_GET['enable'])
+		&& preg_match('/^[a-zA-Z0-9_-]+$/', $_GET['enable'])
 		&& file_exists(INCLUDES."user_fields/".stripinput($_GET['enable'])."_include_var.php")
 		&& file_exists(INCLUDES."user_fields/".stripinput($_GET['enable'])."_include.php")
 ) {

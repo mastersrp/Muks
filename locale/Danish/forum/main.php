@@ -62,6 +62,7 @@ $locale['513'] = " Slå smileys fra";
 $locale['513a'] = "Vis min signatur på dette indlæg";
 $locale['513b'] = "Underret mig, når der skrives et svar";
 $locale['514'] = "Gem svar";
+$locale['514a'] = "Se svar";
 $locale['515'] = "Hold op med at følge denne debat";
 $locale['516'] = "Følg denne debat";
 $locale['517'] = "Slet indlæg";
@@ -71,7 +72,7 @@ $locale['518a'] = "Skal de valgte poster flyttes?";
 $locale['519'] = "Udskriv debat";
 $locale['519a'] = "Udskriv indlæg ";
 // Moderator Options
-$locale['520'] = "Moderatorfunktioner:";
+$locale['520'] = "Ordstyrerfunktioner:";
 $locale['521'] = "Slet emne";
 $locale['522'] = "Lås emne";
 $locale['523'] = "Lås emne op";

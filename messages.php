@@ -403,6 +403,10 @@ if (!isset($_GET['msg_send']) && !isset($_GET['msg_read']) && $_GET['folder'] !=
 		if ($_GET['folder'] == "inbox" && $data['message_folder'] == 0) { echo "<input type='submit' name='save' value='".$locale['412']."' class='button' />\n"; }
 		if ($_GET['folder'] == "archive" && $data['message_folder'] == 2) { echo "<input type='submit' name='unsave' value='".$locale['413']."' class='button' />\n"; }
 		echo "<input type='submit' name='delete' value='".$locale['416']."' class='button' />\n";
+		if ($_GET['folder'] == "inbox" && $data['message_folder'] == 0)
+		{
+			echo ' - <a href="/report.php?action=new&amp;message_id='.$data['message_id'].'">Anmeld</a>';
+		}
 		echo "</td>\n</tr>\n</table>\n</form>\n";
 		closetable();
 	} else {
@@ -451,7 +455,8 @@ if (!isset($_GET['msg_send']) && !isset($_GET['msg_read']) && $_GET['folder'] !=
 	} else {
 		$reply_message = "";
 	}
-
+	$user_list = '';
+	$user_types = '';
 	if (!isset($_POST['chk_sendtoall']) || $_GET['msg_send'] != "0") {
 		$user_list = ""; $user_types = ""; $sel = "";
 		$result = dbquery("SELECT user_id, user_name FROM ".DB_USERS." WHERE user_status='0' ORDER BY user_level DESC, user_name ASC");
@@ -475,7 +480,7 @@ if (!isset($_GET['msg_send']) && !isset($_GET['msg_read']) && $_GET['folder'] !=
 
 	add_to_title($locale['global_201'].$locale['420']);
 	opentable($locale['420']);
-	echo "<form name='inputform' method='post' action='".FUSION_SELF."?msg_send=0' onsubmit=\"return ValidateForm(this)\">\n";
+	echo "<form name='inputform' method='post' action='".FUSION_SELF."?msg_send=0' onsubmit='return ValidateForm(this)'>\n";
 	echo "<table cellpadding='0' cellspacing='1' width='100%' class='tbl-border'>\n";
 	echo "<tr>\n<td align='right' width='1%' class='tbl2' style='white-space:nowrap'>".$locale['421'].":</td>\n<td class='tbl1'>\n";
 	if ($_GET['msg_send'] == "0") {

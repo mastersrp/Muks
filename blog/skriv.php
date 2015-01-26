@@ -1,25 +1,19 @@
 <?php
-/*-------------------------------------------------------+
-| PHP-Fusion Content Management System
-| Copyright (C) 2002 - 2011 Nick Jones
-| http://www.php-fusion.co.uk/
-+--------------------------------------------------------+
-| Filename: articles.php
-| Author: Nick Jones (Digitanium)
-+--------------------------------------------------------+
-| This program is released as free software under the
-| Affero GPL license. You can redistribute it and/or
-| modify it under the terms of this license which you
-| can read by viewing the included agpl.txt or online
-| at www.gnu.org/licenses/agpl.html. Removal of this
-| copyright header is strictly prohibited without
-| written permission from the original author(s).
-+--------------------------------------------------------*/
 require_once "../maincore.php";
 if (!iMEMBER)
 {
 	redirect('/index.php');
 }
+if (dbrows(dbquery('SELECT bp_timestamp, bp_author FROM '.DB_PREFIX.'blogposts WHERE bp_author = "'.$userdata['user_id'].'" AND bp_timestamp > '.(time()-3600))) >= 5)
+{
+			require_once THEMES."templates/header.php";
+			opentable('Skriv blogindlæg - Fejl!');
+			echo 'Handlingen blev ikke udført - 6 blogindlæg i løbet af en time er lige en tand for meget ;) Prøv igen senere.';
+			closetable();
+			require_once THEMES."templates/footer.php";
+			die();
+}
+
 require_once THEMES."templates/header.php";
 require_once INCLUDES."bbcode_include.php";
 

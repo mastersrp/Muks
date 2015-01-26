@@ -52,6 +52,8 @@ if (isset($_POST['savesettings'])) {
 	if (!$result) { $error = 1; }
 	$result = dbquery("UPDATE ".DB_SETTINGS." SET settings_value='".(isnum($_POST['userthemes']) ? $_POST['userthemes'] : "0")."' WHERE settings_name='userthemes'");
 	if (!$result) { $error = 1; }
+	$result = dbquery("UPDATE ".DB_SETTINGS." SET settings_value='".(isnum($_POST['multiple_logins']) ? $_POST['multiple_logins'] : "0")."' WHERE settings_name='multiple_logins'");
+	if (!$result) { $error = 1; }
 
 	redirect(FUSION_SELF.$aidlink."&error=".$error);
 }
@@ -119,6 +121,12 @@ echo "<td width='50%' class='tbl'>".$locale['668']."?</td>\n";
 echo "<td width='50%' class='tbl'><select name='userthemes' class='textbox'>\n";
 echo "<option value='1'".($settings['userthemes'] == "1" ? " selected='selected'" : "").">".$locale['518']."</option>\n";
 echo "<option value='0'".($settings['userthemes'] == "0" ? " selected='selected'" : "").">".$locale['519']."</option>\n";
+echo "</select></td>\n";
+echo "</tr>\n<tr>\n";
+echo "<td width='50%' class='tbl'>".$locale['1014']."<br /><span class='small2'>(".$locale['1014a'].")</span></td>\n";
+echo "<td width='50%' class='tbl'><select name='multiple_logins' class='textbox'>\n";
+echo "<option value='1'".($settings['multiple_logins'] == "1" ? " selected='selected'" : "").">".$locale['518']."</option>\n";
+echo "<option value='0'".($settings['multiple_logins'] == "0" ? " selected='selected'" : "").">".$locale['519']."</option>\n";
 echo "</select></td>\n";
 echo "</tr>\n<tr>\n";
 echo "<td align='center' colspan='2' class='tbl'><br />\n";

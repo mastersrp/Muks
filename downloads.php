@@ -105,18 +105,19 @@ if (!isset($_GET['download_id']) || !isnum($_GET['download_id'])) {
 			$cats_list .= "<option value='".$cat_list_data['download_cat_id']."'".$sel.">".$cat_list_data['download_cat_name']."</option>";
 		}
 
-		if (!isset($_GET['rowstart']) || !isnum($_GET['rowstart'])) { $_GET['rowstart'] = 0; }
+		if (!isset($_GET['rowstart']) || !isnum($_GET['rowstart']) || $_GET['rowstart'] > dbrows($cat_list_result)) { $_GET['rowstart'] = 0; }
 		if (isset($_GET['cat_id']) && isnum($_GET['cat_id']) && $_GET['cat_id'] != "all") {
 			$filter .= " AND download_cat_id='".$_GET['cat_id']."'";
-			if (isset($_GET['orderby'])) {
-				$order_by = stripinput($_GET['orderby']);
-				$getString .= "&amp;orderby=".stripinput($_GET['orderby']);
+			$order_by_allowed = array("download_id", "download_user", "download_count", "download_datestamp");
+			if (isset($_GET['orderby']) && in_array($_GET['orderby'], $order_by_allowed)) {
+				$order_by = $_GET['orderby'];
+				$getString .= "&amp;orderby=".$order_by;
 			} else {
 				$order_by = "";
 			}
-			if (isset($_GET['sort'])) {
-				$sort = stripinput($_GET['sort']);
-				$getString .= "&amp;sort=".stripinput($_GET['sort']);
+			if (isset($_GET['sort']) && $_GET['sort'] == "DESC") {
+				$sort = "DESC";
+				$getString .= "&amp;sort=DESC";
 			} else {
 				$sort = "ASC";
 			}
@@ -200,7 +201,7 @@ if (!isset($_GET['download_id']) || !isnum($_GET['download_id'])) {
 			if (checkgroup($cat_data['download_cat_access'])) {
 				echo "<!--pre_download_cat-->";
 				$rows = dbcount("(download_id)", DB_DOWNLOADS, "download_cat='".$cat_data['download_cat_id']."'");
-				if (!isset($_GET['rowstart'.$cat_data['download_cat_id']]) || !isnum($_GET['rowstart'.$cat_data['download_cat_id']])) { $_GET['rowstart'.$cat_data['download_cat_id']] = 0; }
+				if (!isset($_GET['rowstart'.$cat_data['download_cat_id']]) || !isnum($_GET['rowstart'.$cat_data['download_cat_id']]) || $_GET['rowstart'.$cat_data['download_cat_id']] > $rows) { $_GET['rowstart'.$cat_data['download_cat_id']] = 0; }
 				if ($rows != 0) {
 						$result = dbquery(
 							"SELECT td.download_id, td.download_user, td.download_datestamp, td.download_image_thumb, td.download_cat,
@@ -324,7 +325,7 @@ if (isset($_GET['download_id']) && isnum($_GET['download_id'])) {
 		echo "</td>\n</tr>\n";
 		echo "<tr>\n";
 		echo "<td class='tbl2' style='text-align:center;'>\n";
-		echo "<img src='".get_image("downloads")."' alt='".$locale['424']."' /><br />".$locale['415']." ".$data['download_count']."\n";
+		echo "<img src='".get_image("downloads")."' alt='".$locale['424']."' /><br />".$locale['416']." ".$data['download_count']."\n";
 		echo "</td>\n</tr>\n";
 		if ($data['download_version'] != "" || $data['download_license'] != "" || $data['download_os'] != "" || $data['download_copyright'] != "") {
 			echo "<tr>\n<td class='tbl2' style='text-align:center;'><img src='".get_image("info")."' alt='".$locale['428']."' /><br />\n";

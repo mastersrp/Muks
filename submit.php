@@ -17,13 +17,9 @@
 | written permission from the original author(s).
 +--------------------------------------------------------*/
 require_once "maincore.php";
-require_once THEMES."templates/header_mce.php";
+require_once THEMES."templates/header.php";
+include_once INCLUDES."bbcode_include.php";
 include LOCALE.LOCALESET."submit.php";
-if ($settings['tinymce_enabled'] == 1) {
-	echo "<script language='javascript' type='text/javascript'>advanced();</script>\n";
-} else {
-	require_once INCLUDES."html_buttons_include.php";
-}
 
 if (!iMEMBER) { redirect("index.php"); }
 
@@ -55,19 +51,19 @@ if ($_GET['stype'] == "l") {
 			while ($data = dbarray($result)) {
 				$opts .= "<option value='".$data['weblink_cat_id']."'>".$data['weblink_cat_name']."</option>\n";
 			}
-			echo $locale['420']."<br /><br />\n";
+			echo "<div class='submission-guidelines'>".$locale['420']."</div>\n";
 			echo "<form name='submit_form' method='post' action='".FUSION_SELF."?stype=l' onsubmit='return validateLink(this);'>\n";
 			echo "<table cellpadding='0' cellspacing='0' class='center'>\n";
 			echo "<tr>\n<td class='tbl'>".$locale['421']."</td>\n";
 			echo "<td class='tbl'><select name='link_category' class='textbox'>\n$opts</select></td>\n";
 			echo "</tr>\n<tr>\n";
-			echo "<td class='tbl'>".$locale['422']."</td>\n";
+			echo "<td class='tbl'>".$locale['422']."<span style='color:#ff0000'>*</span></td>\n";
 			echo "<td class='tbl'><input type='text' name='link_name' maxlength='100' class='textbox' style='width:300px;' /></td>\n";
 			echo "</tr>\n<tr>\n";
-			echo "<td class='tbl'>".$locale['423']."</td>\n";
+			echo "<td class='tbl'>".$locale['423']."<span style='color:#ff0000'>*</span></td>\n";
 			echo "<td class='tbl'><input type='text' name='link_url' value='http://' maxlength='200' class='textbox' style='width:300px;' /></td>\n";
 			echo "</tr>\n<tr>\n";
-			echo "<td class='tbl'>".$locale['424']."</td>\n";
+			echo "<td class='tbl'>".$locale['424']."<span style='color:#ff0000'>*</span></td>\n";
 			echo "<td class='tbl'><input type='text' name='link_description' maxlength='200' class='textbox' style='width:300px;' /></td>\n";
 			echo "</tr>\n<tr>\n";
 			echo "<td align='center' colspan='2' class='tbl'><br />\n";
@@ -83,9 +79,8 @@ if ($_GET['stype'] == "l") {
 		if ($_POST['news_subject'] != "" && $_POST['news_body'] != "") {
 			$submit_info['news_subject'] = stripinput($_POST['news_subject']);
 			$submit_info['news_cat'] = isnum($_POST['news_cat']) ? $_POST['news_cat'] : "0";
-			$submit_info['news_snippet'] = descript($_POST['news_snippet']);
-			$submit_info['news_body'] = descript($_POST['news_body']);
-			$submit_info['news_breaks'] = (isset($_POST['line_breaks']) ? "y" : "n");
+			$submit_info['news_snippet'] = nl2br(parseubb(stripinput($_POST['news_snippet'])));
+			$submit_info['news_body'] = nl2br(parseubb(stripinput($_POST['news_body'])));
 			$result = dbquery("INSERT INTO ".DB_SUBMISSIONS." (submit_type, submit_user, submit_datestamp, submit_criteria) VALUES('n', '".$userdata['user_id']."', '".time()."', '".addslashes(serialize($submit_info))."')");
 			add_to_title($locale['global_200'].$locale['450']);
 			opentable($locale['450']);
@@ -98,21 +93,18 @@ if ($_GET['stype'] == "l") {
 		if (isset($_POST['preview_news'])) {
 			$news_subject = stripinput($_POST['news_subject']);
 			$news_cat = isnum($_POST['news_cat']) ? $_POST['news_cat'] : "0";
-			$news_snippet = stripslash($_POST['news_snippet']);
-			$news_body = stripslash($_POST['news_body']);
-			$breaks = (isset($_POST['line_breaks']) ? " checked='checked'" : "");
+			$news_snippet = stripinput($_POST['news_snippet']);
+			$news_body = stripinput($_POST['news_body']);
 			opentable($news_subject);
-			echo $locale['478']." ".(isset($_POST['line_breaks']) ? nl2br($news_snippet) : $news_snippet)."<br /><br />";
-			echo $locale['472']." ".(isset($_POST['line_breaks']) ? nl2br($news_body) : $news_body);
+			echo $locale['478']." ".nl2br(parseubb($news_snippet))."<br /><br />";
+			echo $locale['472']." ".nl2br(parseubb($news_body));
 			closetable();
-			tablebreak();
 		}
 		if (!isset($_POST['preview_news'])) {
 			$news_subject = "";
 			$news_cat = "0";
 			$news_snippet = "";
 			$news_body = "";
-			$breaks = " checked='checked'";
 		}
 		$cat_list = ""; $sel = "";
 		$result2 = dbquery("SELECT news_cat_id, news_cat_name FROM ".DB_NEWS_CATS." ORDER BY news_cat_name");
@@ -124,10 +116,10 @@ if ($_GET['stype'] == "l") {
 		}
 		add_to_title($locale['global_200'].$locale['450']);
 		opentable($locale['450']);
-		echo $locale['470']."<br /><br />\n";
+		echo "<div class='submission-guidelines'>".$locale['470']."</div>\n";
 		echo "<form name='submit_form' method='post' action='".FUSION_SELF."?stype=n' onsubmit='return validateNews(this);'>\n";
 		echo "<table cellpadding='0' cellspacing='0' class='center'>\n<tr>\n";
-		echo "<td class='tbl'>".$locale['471']."</td>\n";
+		echo "<td class='tbl'>".$locale['471']."<span style='color:#ff0000'>*</span></td>\n";
 		echo "<td class='tbl'><input type='text' name='news_subject' value='$news_subject' maxlength='64' class='textbox' style='width:300px;' /></td>\n";
 		echo "</tr>\n<tr>\n";
 		echo "<td width='100' class='tbl'>".$locale['476']."</td>\n";
@@ -136,23 +128,18 @@ if ($_GET['stype'] == "l") {
 		echo "<td valign='top' class='tbl'>".$locale['478']."</td>\n";
 		echo "<td class='tbl'><textarea name='news_snippet' cols='60' rows='8' class='textbox dummy_classname' style='width:300px;'>$news_snippet</textarea></td>\n";
 		echo "</tr>\n";
-		if ($settings['tinymce_enabled'] != 1) {
-			echo "<tr>\n<td class='tbl'></td>\n<td class='tbl'>\n";
-			echo display_html("submit_form", "news_snippet", true, true, true);
-			echo "</td>\n</tr>\n";
-		}
+		echo "<tr>\n<td class='tbl'></td>\n<td class='tbl'>\n";
+		echo display_bbcodes("100%", "news_snippet", "submit_form", "b|i|u|center|small|url|mail|img|color");
+		echo "</td>\n</tr>\n";
 		echo "<tr>\n";
-		echo "<td valign='top' class='tbl'>".$locale['472']."</td>\n";
+		echo "<td valign='top' class='tbl'>".$locale['472']."<span style='color:#ff0000'>*</span></td>\n";
 		echo "<td class='tbl'><textarea name='news_body' cols='60' rows='8' class='textbox dummy_classname' style='width:300px;'>$news_body</textarea></td>\n";
 		echo "</tr>\n";
-		if ($settings['tinymce_enabled'] != 1) {
-			echo "<tr>\n<td class='tbl'></td>\n<td class='tbl'>\n";
-			echo display_html("submit_form", "news_body", true, true, true);
-			echo "</td>\n</tr>\n";
-		}
+		echo "<tr>\n<td class='tbl'></td>\n<td class='tbl'>\n";
+		echo display_bbcodes("100%", "news_body", "submit_form", "b|i|u|center|small|url|mail|img|color");
+		echo "</td>\n</tr>\n";
 		echo "<tr>\n";
-		echo "<td align='center' colspan='2' class='tbl'><br />\n";
-		echo "<label><input type='checkbox' name='line_breaks' value='yes'".$breaks." />".$locale['473']."</label><br /><br />\n";
+		echo "<td align='center' colspan='2' class='tbl'><br /><br />\n";
 		echo "<input type='submit' name='preview_news' value='".$locale['474']."' class='button' />\n";
 		echo "<input type='submit' name='submit_news' value='".$locale['475']."' class='button' />\n</td>\n";
 		echo "</tr>\n</table>\n</form>\n";
@@ -163,9 +150,8 @@ if ($_GET['stype'] == "l") {
 		if ($_POST['article_subject'] != "" && $_POST['article_body'] != "") {
 			$submit_info['article_cat'] = isnum($_POST['article_cat']) ? $_POST['article_cat'] : "0";
 			$submit_info['article_subject'] = stripinput($_POST['article_subject']);
-			$submit_info['article_snippet'] = descript($_POST['article_snippet']);
-			$submit_info['article_body'] = descript($_POST['article_body']);
-			$submit_info['article_breaks'] = (isset($_POST['line_breaks']) ? "y" : "n");
+			$submit_info['article_snippet'] = nl2br(parseubb(stripinput($_POST['article_snippet'])));
+			$submit_info['article_body'] = nl2br(parseubb(stripinput($_POST['article_body'])));
 			$result = dbquery("INSERT INTO ".DB_SUBMISSIONS." (submit_type, submit_user, submit_datestamp, submit_criteria) VALUES ('a', '".$userdata['user_id']."', '".time()."', '".addslashes(serialize($submit_info))."')");
 			add_to_title($locale['global_200'].$locale['500']);
 			opentable($locale['500']);
@@ -178,21 +164,18 @@ if ($_GET['stype'] == "l") {
 		if (isset($_POST['preview_article'])) {
 			$article_cat = isnum($_POST['article_cat']) ? $_POST['article_cat'] : "0";
 			$article_subject = stripinput($_POST['article_subject']);
-			$article_snippet = stripslash($_POST['article_snippet']);
-			$article_body = stripslash($_POST['article_body']);
-			$breaks = (isset($_POST['line_breaks']) ? " checked='checked'" : "");
+			$article_snippet = stripinput($_POST['article_snippet']);
+			$article_body = stripinput($_POST['article_body']);
 			opentable($article_subject);
-			echo $locale['523']." ".(isset($_POST['line_breaks']) ? nl2br($article_snippet) : $article_snippet)."<br /><br />";
-			echo $locale['524']." ".(isset($_POST['line_breaks']) ? nl2br($article_body) : $article_body);
+			echo $locale['523']." ".nl2br(parseubb($article_snippet))."<br /><br />";
+			echo $locale['524']." ".nl2br(parseubb($article_body));
 			closetable();
-			tablebreak();
 		}
 		if (!isset($_POST['preview_article'])) {
 			$article_cat = "0";
 			$article_subject = "";
 			$article_snippet = "";
 			$article_body = "";
-			$breaks = " checked='checked'";
 		}
 		$cat_list = ""; $sel = "";
 		add_to_title($locale['global_200'].$locale['500']);
@@ -203,35 +186,30 @@ if ($_GET['stype'] == "l") {
 				if (isset($_POST['preview_article'])) { $sel = $article_cat == $data['article_cat_id'] ? " selected" : ""; }
 				$cat_list .= "<option value='".$data['article_cat_id']."'".$sel.">".$data['article_cat_name']."</option>\n";
 			}
-			echo $locale['520']."<br /><br />\n";
+			echo "<div class='submission-guidelines'>".$locale['520']."</div>\n";
 			echo "<form name='submit_form' method='post' action='".FUSION_SELF."?stype=a' onsubmit='return validateArticle(this);'>\n";
 			echo "<table cellpadding='0' cellspacing='0' class='center'>\n<tr>\n";
 			echo "<td width='100' class='tbl'>".$locale['521']."</td>\n";
 			echo "<td class='tbl'><select name='article_cat' class='textbox'>\n$cat_list</select></td>\n";
 			echo "</tr>\n<tr>\n";
-			echo "<td class='tbl'>".$locale['522']."</td>\n";
+			echo "<td class='tbl'>".$locale['522']."<span style='color:#ff0000'>*</span></td>\n";
 			echo "<td class='tbl'><input type='text' name='article_subject' value='$article_subject' maxlength='64' class='textbox dummy_classname' style='width:300px;' /></td>\n";
 			echo "</tr>\n<tr>\n";
-			echo "<td valign='top' class='tbl'>".$locale['523']."</td>\n";
+			echo "<td valign='top' class='tbl'>".$locale['523']."<span style='color:#ff0000'>*</span></td>\n";
 			echo "<td class='tbl'><textarea name='article_snippet' cols='60' rows='3' class='textbox dummy_classname' style='width:300px;'>$article_snippet</textarea></td>\n";
 			echo "</tr>\n";
-			if ($settings['tinymce_enabled'] != 1) {
-				echo "<tr>\n<td class='tbl'></td>\n<td class='tbl'>\n";
-				echo display_html("submit_form", "article_snippet", true, true, true);
-				echo "</td>\n</tr>\n";
-			}
+			echo "<tr>\n<td class='tbl'></td>\n<td class='tbl'>\n";
+			echo display_bbcodes("100%", "article_snippet", "submit_form", "b|i|u|center|small|url|mail|img|color");
+			echo "</td>\n</tr>\n";
 			echo "<tr>\n";
-			echo "<td valign='top' class='tbl'>".$locale['524']."</td>\n";
+			echo "<td valign='top' class='tbl'>".$locale['524']."<span style='color:#ff0000'>*</span></td>\n";
 			echo "<td class='tbl'><textarea name='article_body' cols='60' rows='8' class='textbox dummy_classname' style='width:300px;'>$article_body</textarea></td>\n";
 			echo "</tr>\n";
-			if ($settings['tinymce_enabled'] != 1) {
-				echo "<tr>\n<td class='tbl'></td>\n<td class='tbl'>\n";
-				echo display_html("submit_form", "article_body", true, true, true);
-				echo "</td>\n</tr>\n";
-			}
+			echo "<tr>\n<td class='tbl'></td>\n<td class='tbl'>\n";
+			echo display_bbcodes("100%", "article_body", "submit_form", "b|i|u|center|small|url|mail|img|color");
+			echo "</td>\n</tr>\n";
 			echo "<tr>\n";
-			echo "<td align='center' colspan='2' class='tbl'><br />\n";
-			echo "<label><input type='checkbox' name='line_breaks' value='yes'".$breaks." />".$locale['525']."</label><br /><br />\n";
+			echo "<td align='center' colspan='2' class='tbl'><br /><br />\n";
 			echo "<input type='submit' name='preview_article' value='".$locale['526']."' class='button' />\n";
 			echo "<input type='submit' name='submit_article' value='".$locale['527']."' class='button' />\n</td>\n";
 			echo "</tr>\n</table>\n</form>\n";
@@ -298,16 +276,16 @@ if ($_GET['stype'] == "l") {
 		$result = dbquery("SELECT album_id, album_title FROM ".DB_PHOTO_ALBUMS." WHERE ".groupaccess("album_access")." ORDER BY album_title");
 		if (dbrows($result)) {
 			while ($data = dbarray($result)) $opts .= "<option value='".$data['album_id']."'>".$data['album_title']."</option>\n";
-			echo $locale['620']."<br /><br />\n";
+			echo "<div class='submission-guidelines'>".$locale['620']."</div>\n";
 			echo "<form name='submit_form' method='post' action='".FUSION_SELF."?stype=p' enctype='multipart/form-data' onsubmit='return validatePhoto(this);'>\n";
 			echo "<table cellpadding='0' cellspacing='0' class='center'>\n<tr>\n";
-			echo "<td class='tbl'>".$locale['621']."</td>\n";
+			echo "<td class='tbl'>".$locale['621']."<span style='color:#ff0000'>*</span></td>\n";
 			echo "<td class='tbl'><input type='text' name='photo_title' maxlength='100' class='textbox' style='width:250px;' /></td>\n";
 			echo "</tr>\n<tr>\n";
-			echo "<td valign='top' class='tbl'>".$locale['622']."</td>\n";
+			echo "<td valign='top' class='tbl'>".$locale['622']."<span style='color:#ff0000'>*</span></td>\n";
 			echo "<td class='tbl'><textarea name='photo_description' cols='60' rows='5' class='textbox' style='width:300px;'></textarea></td>\n";
 			echo "</tr>\n<tr>\n";
-			echo "<td valign='top' class='tbl'>".$locale['623']."</td>\n";
+			echo "<td valign='top' class='tbl'>".$locale['623']."<span style='color:#ff0000'>*</span></td>\n";
 			echo "<td class='tbl'><label><input type='file' name='photo_pic_file' class='textbox' style='width:250px;' /><br />\n";
 			echo "<span class='small2'>".sprintf($locale['624'], parsebytesize($settings['photo_max_b']), $settings['photo_max_w'], $settings['photo_max_h'])."</span></label></td>\n";
 			echo "</tr>\n<tr>\n";
@@ -368,7 +346,7 @@ if ($_GET['stype'] == "l") {
 						case 1 : $error = 4; break;
 						case 2 : $error = 5; break;
 						case 3 : $error = 6; break;
-						default: $error = 11;break;
+						default: $error = 11; break;
 					}
 				}
 			}
@@ -398,7 +376,7 @@ if ($_GET['stype'] == "l") {
 						case 2 : $error = 8; break;
 						case 3 : $error = 9; break;
 						case 4 : $error = 10; break;
-						default: $error = 11;break;
+						default: $error = 11; break;
 					}
 				}
 			}
@@ -435,13 +413,13 @@ if ($_GET['stype'] == "l") {
 		$result = dbquery("SELECT download_cat_id, download_cat_name FROM ".DB_DOWNLOAD_CATS." WHERE ".groupaccess("download_cat_access")." ORDER BY download_cat_name");
 		if (dbrows($result)) {
 			while ($data = dbarray($result)) $opts .= "<option value='".$data['download_cat_id']."'>".$data['download_cat_name']."</option>\n";
-			echo $locale['680']."<br /><br />\n";
+			echo "<div class='submission-guidelines'>".$locale['680']."</div>\n";
 			echo "<form name='submit_form' method='post' action='".FUSION_SELF."?stype=d' enctype='multipart/form-data' onsubmit='return validateDownload(this);'>\n";
 			echo "<table cellpadding='0' cellspacing='0' class='center' style='width:500px;'>\n<tr>\n";
-			echo "<td class='tbl1' style='width:80px;'>".$locale['681']."</td>\n";
+			echo "<td class='tbl1' style='width:80px;'>".$locale['681']."<span style='color:#ff0000'>*</span></td>\n";
 			echo "<td class='tbl1'><input type='text' name='download_title' class='textbox' style='width:380px;' /></td>\n";
 			echo "</tr>\n<tr>\n";
-			echo "<td class='tbl1' style='width:80px;vertical-align:top;'>".$locale['682b']."<br /><br />";
+			echo "<td class='tbl1' style='width:80px;vertical-align:top;'>".$locale['682b']."<span style='color:#ff0000'>*</span><br /><br />";
 			echo "<span id='shortdesc_display' style='padding: 1px 3px 1px 3px; border:1px solid; display:none;'>";
 			echo "<strong>255</strong>";
 			echo "</span>";
@@ -455,10 +433,10 @@ if ($_GET['stype'] == "l") {
 			require_once INCLUDES."bbcode_include.php";
 			echo display_bbcodes("100%", "download_description", "submit_form")."</td>\n";
 			echo "</tr>\n<tr>\n";
-			echo "<td class='tbl1' style='width:80px;'>".$locale['683']."</td>\n";
+			echo "<td class='tbl1' style='width:80px;'>".$locale['683']."<span style='color:#0000cc'>*</span></td>\n";
 			echo "<td class='tbl1'><input type='text' name='download_url' class='textbox' style='width:380px;' /></td>\n";
 			echo "</tr>\n<tr>\n";
-			echo "<td class='tbl1' style='width:80px; vertical-align:top;'>".$locale['684']."</td>\n<td class='tbl1' style='vertical-align:top;'>\n";
+			echo "<td class='tbl1' style='width:80px; vertical-align:top;'>".$locale['684']."<span style='color:#0000cc'>*</span></td>\n<td class='tbl1' style='vertical-align:top;'>\n";
 			echo "<input type='file' name='download_file' class='textbox' style='width:150px;' /><br />\n";
 			echo sprintf($locale['694'], parsebytesize($settings['download_max_b']), str_replace(',', ' ', $settings['download_types']))."<br />\n";
 			echo "<label><input type='checkbox' name='calc_upload' id='calc_upload' value='1' /> ".$locale['685']."</label>\n";
@@ -466,7 +444,7 @@ if ($_GET['stype'] == "l") {
 			echo "</tr>\n<tr>\n";
 			echo "<td class='tbl1' style='width:80px; vertical-align:top;'>".$locale['686']."</td>\n<td class='tbl1' style='vertical-align:top;'>\n";
 			echo "<input type='file' name='download_image' class='textbox' style='width:150px;' /><br />\n";
-			echo sprintf($locale['694b'], parsebytesize(150000), str_replace(',', ' ', ".jpg,.gif,.png"), "1024", "768")."<br />\n";
+			echo sprintf($locale['694b'], parsebytesize($settings['download_screen_max_b']), str_replace(',', ' ', ".jpg,.gif,.png"), $settings['download_screen_max_w'], $settings['download_screen_max_h'])."<br />\n";
 			echo "</td>\n";
 			echo "</tr>\n<tr>\n";
 			echo "<td class='tbl1' style='width:80px;'>".$locale['687']."</td>\n";
@@ -493,32 +471,32 @@ if ($_GET['stype'] == "l") {
 			echo "<td align='center' colspan='2' class='tbl'><br />\n";
 			echo "<input type='submit' name='submit_download' value='".$locale['695']."' class='button' />\n</td>\n";
 			echo "</tr>\n</table>\n</form>\n";
-			echo "<script language='JavaScript' type='text/javascript'>\n";
-			echo "/* <![CDATA[ */\n";
-			echo "jQuery(document).ready(function() {\n";
-			echo "jQuery('#shortdesc_display').show();\n";
-			echo "jQuery('#calc_upload').click(\n";
-			echo "function() {\n";
-			echo "if (jQuery('#calc_upload').attr('checked')) {\n";
-			echo "jQuery('#download_filesize').attr('readonly', 'readonly');\n";
-			echo "jQuery('#download_filesize').val('');\n";
-			echo "jQuery('#calc_upload').attr('checked', 'checked');\n";
-			echo "} else {\n";
-			echo "jQuery('#download_filesize').removeAttr('readonly');\n";
-			echo "jQuery('#calc_upload').removeAttr('checked');\n";
-			echo "}\n";
-			echo "});\n";
-			echo "});\n";
-			echo "function shortdesc_counter(textarea, counterID, maxLen) {\n";
-			echo "cnt = document.getElementById(counterID);\n";
-			echo "if (textarea.value.length >= maxLen)\n";
-			echo "{\n";
-			echo "textarea.value = textarea.value.substring(0,maxLen);\n";
-			echo "}\n";
-			echo "cnt.innerHTML = maxLen - textarea.value.length;\n";
-			echo "}\n";
-			echo "/* ]]>*/\n";
-			echo "</script>\n";
+			$jquery_upload_js  = '<script type="text/javascript">';
+			$jquery_upload_js .=  "/*<![CDATA[*/";			
+			$jquery_upload_js .=  "jQuery(document).ready(function(){";
+			$jquery_upload_js .=    "jQuery('#shortdesc_display').show();";
+			$jquery_upload_js .=    "jQuery('#calc_upload').click(function(){";
+			$jquery_upload_js .=        "if(jQuery('#calc_upload').attr('checked')){";
+			$jquery_upload_js .=        "jQuery('#download_filesize').attr('readonly','readonly');";
+			$jquery_upload_js .=        "jQuery('#download_filesize').val('');";
+			$jquery_upload_js .=        "jQuery('#calc_upload').attr('checked','checked');";
+			$jquery_upload_js .=      "}else{";
+			$jquery_upload_js .=        "jQuery('#download_filesize').removeAttr('readonly');";
+			$jquery_upload_js .=        "jQuery('#calc_upload').removeAttr('checked');";
+			$jquery_upload_js .=      "}";
+			$jquery_upload_js .=    "});";
+			$jquery_upload_js .=  "});";			
+			$jquery_upload_js .=  "function shortdesc_counter(textarea, counterID, maxLen){";
+			$jquery_upload_js .=    "cnt = document.getElementById(counterID);";
+			$jquery_upload_js .=    "if(textarea.value.length >= maxLen){";
+			$jquery_upload_js .=      "textarea.value = textarea.value.substring(0,maxLen);";
+			$jquery_upload_js .=    "}";
+			$jquery_upload_js .=    "cnt.innerHTML = maxLen - textarea.value.length;";
+			$jquery_upload_js .=  "}";			
+			$jquery_upload_js .=  "/*]]>*/";
+			$jquery_upload_js .= "</script>";
+			add_to_footer($jquery_upload_js);
+			unset($jquery_upload_js);
 		} else {
 			echo "<div style='text-align:center'><br />\n".$locale['551']."<br /><br />\n</div>\n";
 		}
@@ -527,36 +505,45 @@ if ($_GET['stype'] == "l") {
 } else {
 	redirect("index.php");
 }
-echo "<script type='text/javascript'>
-function validateLink(frm) {
-	if (frm.link_name.value==\"\" || frm.link_name.value==\"\" || frm.link_description.value==\"\") {
-		alert(\"".$locale['550']."\"); return false;
-	}
-}
-function validateNews(frm) {
-	if (frm.news_subject.value==\"\" || frm.news_body.value==\"\") {
-		alert(\"".$locale['550']."\"); return false;
-	}
-}
-function validateArticle(frm) {
-	if (frm.article_subject.value==\"\" || frm.article_snippet.value==\"\" || frm.article_body.value==\"\") {
-		alert(\"".$locale['550']."\");
-		return false;
-	}
-}
-function validatePhoto(frm) {
-	if (frm.photo_title.value==\"\" || frm.photo_description.value==\"\" || frm.photo_pic_file.value==\"\") {
-		alert(\"".$locale['550']."\");
-		return false;
-	}
-}
-function validateDownload(frm) {
-	if (frm.download_title.value==\"\" || frm.download_description_short.value==\"\" || (frm.download_url.value==\"\" && frm.download_file.value==\"\")) {
-		alert(\"".$locale['550']."\");
-		return false;
-	}
-}
-</script>\n";
+
+$submit_js  = '<script type="text/javascript">';
+$submit_js .=  "/*<![CDATA[*/";
+/************ weblinks **/
+$submit_js .=  "function validateLink(frm){";
+$submit_js .=    'if(frm.link_name.value=="" || frm.link_url.value=="" || frm.link_description.value==""){';
+$submit_js .=      'alert("'.$locale['550'].'"); return false;';
+$submit_js .=    "}";
+$submit_js .=  "}";
+/************ news ******/
+$submit_js .=  "function validateNews(frm){";
+$submit_js .=    'if(frm.news_subject.value=="" || frm.news_body.value==""){';
+$submit_js .=      'alert("'.$locale['550'].'"); return false;';
+$submit_js .=    "}";
+$submit_js .=  "}";
+/************ articles **/
+$submit_js .=  "function validateArticle(frm){";
+$submit_js .=    'if(frm.article_subject.value=="" || frm.article_snippet.value=="" || frm.article_body.value==""){';
+$submit_js .=      'alert("'.$locale['550'].'"); return false;';
+$submit_js .=    "}";
+$submit_js .=  "}";
+/************ photos ****/
+$submit_js .=  "function validatePhoto(frm){";
+$submit_js .=    'if(frm.photo_title.value=="" || frm.photo_description.value=="" || frm.photo_pic_file.value==""){';
+$submit_js .=      'alert("'.$locale['550'].'"); return false;';
+$submit_js .=    "}";
+$submit_js .=  "}";
+/************ downloads */
+$submit_js .=  "function validateDownload(frm){";
+$submit_js .=    'if(frm.download_title.value=="" || frm.download_description_short.value=="" || (frm.download_url.value=="" && frm.download_file.value=="")){';
+$submit_js .=      'alert("'.$locale['550'].'"); return false;';
+$submit_js .=    "}";
+$submit_js .=  "}";
+/************ -- end -- */
+$submit_js .=  "/*]]>*/";
+$submit_js .= "</script>";
+
+add_to_footer($submit_js);
+unset($submit_js);
 
 require_once THEMES."templates/footer.php";
 ?>

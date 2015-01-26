@@ -17,39 +17,67 @@
 +--------------------------------------------------------*/
 if (!defined("IN_FUSION")) { die("Access Denied"); }
 
+
 if (iMEMBER) {
-	$msg_count = dbcount("(message_id)", DB_MESSAGES, "message_to='".$userdata['user_id']."' AND message_read='0' AND message_folder='0'");
-
-	openside('<a href="/profile.php?lookup='.$userdata['user_id'].'" style="color: inherit;">'.$userdata['user_name'].'</a>');
-	echo THEME_BULLET." <a href='".BASEDIR."blog/liste.php' class='side'>Blog</a><br />\n";
-	echo THEME_BULLET." <a href='".BASEDIR."edit_profile.php' class='side'>".$locale['global_120']."</a><br />\n";
-	echo THEME_BULLET." <a href='".BASEDIR."messages.php' class='side'>".$locale['global_121']."</a><br />\n";
-	echo THEME_BULLET." <a href='".BASEDIR."members.php' class='side'>".$locale['global_122']."</a><br />\n";
-
-	if (iADMIN && (iUSER_RIGHTS != "" || iUSER_RIGHTS != "C")) {
-		echo THEME_BULLET." <a href='".ADMIN."index.php".$aidlink."' class='side'>".$locale['global_123']."</a><br />\n";
+	$msg_settings = dbarray(dbquery("SELECT * FROM ".DB_MESSAGES_OPTIONS." WHERE user_id='0'"));
+	
+	if (iADMIN || $userdata['user_id'] == 1) {
+		$msg_settings['pm_inbox'] = 0;
 	}
+	
+	if ($msg_settings['pm_inbox'] > 0)
+	{
+		$bdata = dbarray(dbquery(
+			"SELECT COUNT(IF(message_folder=0, 1, null)) inbox_total,
+			COUNT(IF(message_folder=1, 1, null)) outbox_total, COUNT(IF(message_folder=2, 1, null)) archive_total
+			FROM ".DB_MESSAGES." WHERE message_to='".$userdata['user_id']."' GROUP BY message_to"
+		));
 
-	echo THEME_BULLET." <a href='".BASEDIR."index.php?logout=yes' class='side'>".$locale['global_124']."</a>\n";
-
-	if ($msg_count) {
-		echo "<div style='text-align:center;margin-top:15px;'>\n";
-		echo "<strong><a href='".BASEDIR."messages.php' class='side'>".sprintf($locale['global_125'], $msg_count);
-		echo ($msg_count == 1 ? $locale['global_126'] : $locale['global_127'])."</a></strong>\n";
-		echo "</div>\n";
-	}
-
-	if (iADMIN && (iUSER_RIGHTS != "" || iUSER_RIGHTS != "C")) {
-		$subm_count = dbcount("(submit_id)", DB_SUBMISSIONS);
-
-		if ($subm_count) {
-			echo "<div style='text-align:center;margin-top:15px;'>\n";
-			echo "<strong><a href='".ADMIN."submissions.php".$aidlink."' class='side'>".sprintf($locale['global_125'], $subm_count);
-			echo ($subm_count == 1 ? $locale['global_128'] : $locale['global_129'])."</a></strong>\n";
-			echo "</div>\n";
+		if (($msg_settings['pm_inbox'] - $bdata['inbox_total']) <= 5)
+		{
+			$inbox_full = $msg_settings['pm_inbox'] - $bdata['inbox_total'];
 		}
 	}
-	closeside();
+	
+	$msg_count = dbcount("(message_id)", DB_MESSAGES, "message_to='".$userdata['user_id']."' AND message_read='0' AND message_folder='0'");
+	if (iADMIN)
+	{
+		$report_count1 = dbrows(dbquery('SELECT report_zap FROM '.DB_PREFIX.'reports WHERE report_zap < 1'));
+	}
+	
+	if ((iADMIN && $report_count1) || $msg_count || isset($inbox_full))
+	{
+		openside('Se her!');
+		if (iADMIN && $report_count1)
+		{
+			echo "<br />\n";
+			
+			if ($report_count1)
+			{
+				echo "<div style='text-align:center;margin-top:15px;'>\n";
+				echo "<strong><a href='".BASEDIR."reports.php' class='side'>".$report_count1." nye anmeldelser!</a></strong>\n</div><br />\n";
+			}
+		}
+		if ($msg_count) {
+			echo "<div style='text-align:center;margin-top:15px;'>\n";
+			echo "<strong><a href='".BASEDIR."messages.php' class='side'>Der er ".$msg_count.($msg_count == 1 ? ' ny besked' : ' nye beskeder').'</a></strong>';
+			echo "</div>\n";
+		}
+		if (isset($inbox_full))
+		{
+			if ($inbox_full > 0)
+			{
+				echo '<strong>Om '.$inbox_full.' beskeder er din indbakke fuld. :(</strong><br />';
+			}
+			else
+			{
+				echo '<strong>Din indbakke er fuld. :(</strong><br />';
+			}
+		}
+		closeside();
+	}
+
+
 } else {
 	if (!preg_match('/login.php/i',FUSION_SELF)) {
 		$action_url = FUSION_SELF.(FUSION_QUERY ? "?".FUSION_QUERY : "");

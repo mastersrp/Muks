@@ -19,7 +19,7 @@
 echo "<div style='width:330px; margin:0 auto;'>";
 
 // Display Capthca
-echo "<img id='captcha' src='".INCLUDES."captchas/securimage2/securimage_show.php?signature=".$settings['siteurl']."' alt='".$locale['global_600']."' align='left' />\n";
+echo "<img id='captcha' src='".INCLUDES."captchas/securimage2/securimage_show.php' alt='".$locale['global_600']."' align='left' />\n";
 
 //echo "<a href='".INCLUDES."captchas/securimage2/securimage_play.php'>";
 //echo "<img src='".INCLUDES."captchas/securimage2/images/audio_icon.gif' alt='' align='top' class='tbl-border' style='margin-bottom:1px' /></a><br />\n";

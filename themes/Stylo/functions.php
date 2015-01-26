@@ -15,7 +15,6 @@ set_image("pm", "pm");
 set_image("quote", "quote");
 set_image("forum_edit", "forum_edit");
 
-// lines by Johan Wilson
 function theme_output($output) {
 
 	$search = array(
@@ -40,5 +39,4 @@ function theme_output($output) {
 
 	return $output;
 }
-
 ?>

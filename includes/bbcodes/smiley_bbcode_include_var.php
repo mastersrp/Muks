@@ -24,7 +24,7 @@ array(
 "bbcode_start"		=>	"",
 "bbcode_end"		=>	"",
 "usage"				=>	$locale['bb_smiley_usage'],
-"onclick"			=>	"return overlay(this, 'bbcode_smileys_list_".$textarea_name."', '".($p_data['panel_side']==1 ? "bottomright" : "bottomleft")."');",
+"onclick"			=>	"return overlay(this, 'bbcode_smileys_list_".$textarea_name."', '".((isset($p_data['panel_side']) && $p_data['panel_side'] == 4) ? "bottomright" : "bottomleft")."');",
 "onmouseover"		=>	"",
 "onmouseout"		=>	"",
 "html_start"		=>	"<div id='bbcode_smileys_list_".$textarea_name."' class='tbl1 bbcode-popup' style='display:none;border:1px solid black;position:absolute;overflow:auto;width:400px;height:auto;' onclick=\"overlayclose('bbcode_smileys_list_".$textarea_name."');\">",

@@ -33,6 +33,8 @@ $locale['429'] = "Hjemmeside sti:";
 $locale['430'] = "Hjemmeside port:";
 $locale['431'] = "Forhåndsvisning:";
 $locale['432'] = "Andre indstillinger";
+$locale['433'] = "minside.dk";
+$locale['434'] = "minfolder";
 // Time & Date Settings
 $locale['450'] = "Dato og klokkeslæt"; 
 $locale['451'] = "Kort datoformat:";
@@ -82,6 +84,14 @@ $locale['527'] = "1 uge";
 $locale['528'] = "1 måned";
 $locale['529'] = "1 år";
 $locale['530'] = "Ingen";
+$locale['531'] = "Vis nyeste indlæg under svarformularen?";
+$locale['532'] = "Seneste indlæg + %s";
+$locale['533'] = "Kun sidste indlæg";
+$locale['534'] = "Maksimalt tilknytningsantal:";
+$locale['535'] = "Maksimalt antal tilknyttede filer";
+$locale['536'] = "Tidsgrænse for rettelse af indlæg:";
+$locale['537'] = "(I minutter - skriv 0 for ingen grænse)";
+$locale['538'] = "Opdateringstidspunkt for redigerede indlæg.";
 // Registration Settings
 $locale['550'] = "Tilmelding"; 
 $locale['551'] = "Skal tilmelding være slået til?";
@@ -119,12 +129,13 @@ $locale['652'] = "Kun et ord pr. linje.";
 $locale['653'] = "Lad denne stå tom, hvis den ikke skal bruges.";
 $locale['654'] = "Erstatningsord:";
 $locale['655'] = "Tillad gæster at skrive replikker?";
+$locale['656'] = "Vis avatarer i kommentarer?";
 $locale['657'] = "Vedligeholdelsestilstand:";
 $locale['658'] = "Vedligeholdelsesbesked:";
 $locale['659'] = "Ord-censur slået til?";
 $locale['660'] = "Tidsgrænse i minutter";
 $locale['661'] = "Undlad at udfylde, hvis sikkerhedskopier skal downloades eller uploades direkte.";
-$locale['662'] = "Skal TinyMCE HTML editoren bruges?";
+$locale['662'] = "Skal TinyMCE HTML-editoren bruges?";
 $locale['663'] = "Kun til artikler og nyheder.";
 $locale['664'] = "SMTP Vært";
 $locale['665'] = "Efterlades blankt hvis sendmail er aktiveret.";
@@ -139,7 +150,7 @@ $locale['673'] = "Skjul brugerprofiler fra fremvisning:";
 $locale['674'] = "SMTP Port";
 $locale['675'] = "Vedligeholdelsesniveau:";
 $locale['676'] = "Administratorer";
-$locale['677'] = "Superadministratorer";
+$locale['677'] = "Super administratorer";
 $locale['678'] = "Sideejer";
 $locale['679'] = "Slå besøgstæller til?";
 $locale['680'] = "Automatisk udelukkelse ved flooding:";
@@ -159,6 +170,12 @@ $locale['693'] = "Captcha";
 $locale['694'] = "Recaptcha offentlige nøgle (<a href='https://www.google.com/recaptcha/admin/create' title='Hent din nøgle her'>Hent din nøgle</a>)";
 $locale['695'] = "Recaptcha private nøgle";
 $locale['696'] = "Venligst indsæt din offentlige og private reCAPTCHA nøgle!";
+$locale['697'] = "Vælg farvetema";
+$locale['697r'] = "Rød";
+$locale['697b'] = "Sort glasagtig";
+$locale['697c'] = "Ren";
+$locale['697w'] = "Hvid";
+$locale['698'] = "SMTP auth?";
 // Private Message Settings
 $locale['700'] = "Beskeder";
 $locale['701'] = "Grænse for beskedantal i indbakke:";
@@ -202,6 +219,8 @@ $locale['933'] = "Adskil typebetegnelser med komma";
 $locale['934'] = "Maksimal størrelse for illustration:";
 $locale['935'] = "Bredde x Højde";
 $locale['936'] = "Maksimal filstørrelse for illustration (bytes):";
+$locale['937'] = "Maksimal størrelse for skærmdump:";
+$locale['938'] = "Slå skærmdump til?";
 // News Settings
 $locale['950'] = "Upload af billeder";
 $locale['951'] = "Billedlink:";
@@ -215,7 +234,7 @@ $locale['958'] = "Billede på udvidet tekst";
 $locale['959'] = "Uploadet billede";
 $locale['960'] = "Kategori-ikon";
 // User Management
-$locale['1001'] = "Avatar visningsfaktor:";
+$locale['1001'] = "Avatarvisningsfaktor:";
 $locale['1002'] = "Deaktiveringssystem slået til";
 $locale['1003'] = "Tilladt periode af inaktivitet:";
 $locale['1004'] = "Antal dage før deaktiveringen påbegyndes.";
@@ -228,6 +247,8 @@ $locale['1010'] = "Maksimal størrelse på billede (bytes):";
 $locale['1011'] = "Handling ved manglende aktivitet:";
 $locale['1012'] = "Anonymiser bruger(e)";
 $locale['1013'] = "Slet bruger(e)";
+$locale['1014'] = "Tillad brugere at logge på forskellige enheder på samme tid?";
+$locale['1014a'] = "Slå fra for højere sikkerhed";
 
 // Date format options (you can add/delete lines)
 // More info at: http://php.net/manual/en/function.strftime.php

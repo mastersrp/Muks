@@ -92,7 +92,7 @@ for ($i = 1; $i <= 4; $i++) {
 	$k = 0;
 	echo "<div style='width:700px;' class='panels tbl-border center floatfix'><div class='tbl2'>\n";
 	echo "<div style='float:left; padding-left:30px;'>";
-	echo "<strong>".$side[$i]." [<a href='panel_editor.php".$aidlink."'>".$locale['438']."</a>]</strong>";
+	echo "<strong>".$side[$i]." [<a href='panel_editor.php".$aidlink."&amp;panel_side=".$i."'>".$locale['438']."</a>]</strong>";
 	echo "</div>\n<div style='float:right; width:230px;'><strong>".$locale['406']."</strong></div>\n";
 	echo "<div style='float:right; width:150px;'><strong>".$locale['405']."</strong></div>\n";
 	echo "<div style='float:right; width:10%;'><strong>".$locale['404']."</strong></div>\n";
@@ -110,7 +110,7 @@ for ($i = 1; $i <= 4; $i++) {
 		echo "<div style='float:left; width:30px;'><img src='".IMAGES."arrow.png' alt='move' class='handle' /></div>\n";
 		echo "<div style='float:left;'>".$data['panel_name']."</div>\n";
 		echo "<div style='float:right; width:230px;'>";
-		echo "[<a href='panel_editor.php".$aidlink."&amp;action=edit&amp;panel_id=".$data['panel_id']."&amp;panel_side=1'>".$locale['434']."</a>]\n";
+		echo "[<a href='panel_editor.php".$aidlink."&amp;action=edit&amp;panel_id=".$data['panel_id']."&amp;panel_side=".$i."'>".$locale['434']."</a>]\n";
 		if ($data['panel_status'] == 0) {
 			echo "[<a href='".FUSION_SELF.$aidlink."&amp;action=setstatus&amp;status=1&amp;panel_id=".$data['panel_id']."'>".$locale['435']."</a>]\n";
 		} else {

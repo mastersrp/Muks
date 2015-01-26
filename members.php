@@ -32,24 +32,13 @@ if (iMEMBER) {
 		$i = 0;
 		echo "<table cellpadding='0' cellspacing='0' width='100%'>\n<tr>\n";
 		echo "<td class='tbl2'><strong>".$locale['401']."</strong></td>\n";
-		echo "<td class='tbl2'><strong>".$locale['405']."</strong></td>\n";
 		echo "<td align='center' width='1%' class='tbl2' style='white-space:nowrap'><strong>".$locale['402']."</strong></td>\n";
 		echo "</tr>\n";
-		$result = dbquery("SELECT user_id, user_name, user_status, user_level, user_groups FROM ".DB_USERS." WHERE user_status='0'".$orderby." ORDER BY user_level DESC, user_name LIMIT ".$_GET['rowstart'].",20");
+		$result = dbquery("SELECT user_id, user_name, user_status, user_level, user_groups, user_title FROM ".DB_USERS." WHERE user_status='0'".$orderby." ORDER BY user_level DESC, user_title DESC, user_name LIMIT ".$_GET['rowstart'].",20");
 		while ($data = dbarray($result)) {
 			$cell_color = ($i % 2 == 0 ? "tbl1" : "tbl2"); $i++;
 			echo "<tr>\n<td class='$cell_color'>\n".profile_link($data['user_id'], $data['user_name'], $data['user_status'])."</td>\n";
-			$groups = "";
-			$user_groups = explode(".", $data['user_groups']);
-			$j = 0;
-			foreach ($user_groups as $key => $value) {
-				if ($value) {
-					$groups .= "<a href='profile.php?group_id=".$value."'>".getgroupname($value)."</a>".($j < count($user_groups)-1 ? ", " : "");
-				}
-				$j++;
-			}
-			echo "<td class='$cell_color'>\n".($groups ? $groups : ($data['user_level'] == 103 ? $locale['407'] : $locale['406']))."</td>\n";
-			echo "<td align='center' width='1%' class='$cell_color' style='white-space:nowrap'>".getuserlevel($data['user_level'])."</td>\n</tr>";
+			echo "<td align='center' width='1%' class='$cell_color' style='white-space:nowrap'>".$data['user_title']."</td>\n</tr>";
 		}
 		echo "</table>\n"; 
 	} else {

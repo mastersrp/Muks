@@ -58,8 +58,10 @@ if (!isset($_GET['cat_id']) || !isnum($_GET['cat_id'])) {
 			$numrows = dbrows($result);
 			while ($data = dbarray($result)) {
 				if ($i != 0 && ($i % $columns == 0)) { echo "</tr>\n<tr>\n"; }
+				echo "<td class='tbl1' width='25%'><a href='#faq_".$data['faq_id']."'>".$data['faq_question']."</a></td>";
 				$faq_content .= "<div class='".($ii % 2 == 0 ? "tbl1" : "tbl2")."' style='display:block; padding:10px 5px'>\n";
 				$faq_content .= "<a id='faq_".$data['faq_id']."'></a><strong>".$data['faq_question']."</strong><br />\n".nl2br(stripslashes($data['faq_answer']));
+				$faq_content .= "<br style='clear:both' /><a href='#content'><span class='small'>".$locale['402']."</span></a><br />\n";
 				$faq_content .= "</div>\n";
 				$i++; $ii++;
 			}

@@ -33,7 +33,7 @@ function setError($error_level, $error_message, $error_file, $error_line, $error
 	$result = dbquery(
 		"SELECT error_id, error_status FROM ".DB_ERRORS."
 		WHERE error_level='".intval($error_level)."' AND error_file='".stripinput($error_file)."'
-		AND error_line='".intval($error_line)."' AND error_status!='2'
+		AND error_line='".intval($error_line)."' AND error_status!='1'
 		ORDER BY error_timestamp DESC LIMIT 1"
 	);
 	if (dbrows($result) == 0) {
@@ -44,7 +44,7 @@ function setError($error_level, $error_message, $error_file, $error_line, $error
 			) VALUES (
 				'".intval($error_level)."', '".stripinput($error_message)."',
 				'".stripinput($error_file)."', '".intval($error_line)."',
-				'".TURE_PHP_SELF."', '".$userdata['user_level']."', '".USER_IP."', '".USER_IP_TYPE."',
+				'".TRUE_PHP_SELF."', '".$userdata['user_level']."', '".USER_IP."', '".USER_IP_TYPE."',
 				'0', '".time()."'
 			)"
 		);

@@ -73,4 +73,6 @@ $locale['262'] = "Aktive brugere:";
 $locale['263'] = "Slettede brugere:";
 $locale['264'] = "Inaktive brugere:";
 $locale['265'] = "Foreslåede downloads:";
+$locale['266'] = "Bruger log";
+$locale['267'] = "robots.txt";
 ?>

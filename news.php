@@ -61,8 +61,7 @@ if (!isset($_GET['readmore']) || !isnum($_GET['readmore'])) {
 			} else {
 				$news_cat_image = "";
 			}
-			$news_news = $data['news_breaks'] == "y" ? nl2br(stripslashes($data['news_news'])) : stripslashes($data['news_news']);
-
+			$news_news = preg_replace("/<!?--\s*pagebreak\s*-->/i", "", ($data['news_breaks'] == "y" ? nl2br(stripslashes($data['news_news'])) : stripslashes($data['news_news'])));
 			$news_info = array(
 				"news_id" => $data['news_id'],
 				"user_id" => $data['user_id'],
@@ -91,6 +90,7 @@ if (!isset($_GET['readmore']) || !isnum($_GET['readmore'])) {
 		closetable();
 	}
 } else {
+	if (!isset($_GET['rowstart']) || !isnum($_GET['rowstart'])) { $_GET['rowstart'] = 0; }
 	$result = dbquery(
 		"SELECT tn.*, tc.*, tu.user_id, tu.user_name, tu.user_status FROM ".DB_NEWS." tn
 		LEFT JOIN ".DB_USERS." tu ON tn.news_name=tu.user_id
@@ -114,8 +114,8 @@ if (!isset($_GET['readmore']) || !isnum($_GET['readmore'])) {
 		} elseif ($data['news_cat_image']) {
 			$news_cat_image = "<a href='news_cats.php?cat_id=".$data['news_cat']."'><img src='".get_image("nc_".$data['news_cat_name'])."' alt='".$data['news_cat_name']."' class='news-category' /></a>";
 		}
-		$news_news = stripslashes($data['news_extended'] ? $data['news_extended'] : $data['news_news']);
-		if ($data['news_breaks'] == "y") { $news_news = nl2br($news_news); }
+		$news_news = preg_split("/<!?--\s*pagebreak\s*-->/i", $data['news_breaks'] == "y" ? nl2br(stripslashes($data['news_extended'] ? $data['news_extended'] : $data['news_news'])) : stripslashes($data['news_extended'] ? $data['news_extended'] : $data['news_news']));    
+		$pagecount = count($news_news);
 		$news_info = array(
 			"news_id" => $data['news_id'],
 			"user_id" => $data['user_id'],
@@ -134,8 +134,11 @@ if (!isset($_GET['readmore']) || !isnum($_GET['readmore'])) {
 		);
 		add_to_title($locale['global_201'].$news_subject);
 		echo "<!--news_pre_readmore-->";
-		render_news($news_subject, $news_news, $news_info);
+		render_news($news_subject, $news_news[$_GET['rowstart']], $news_info);
 		echo "<!--news_sub_readmore-->";
+		if ($pagecount > 1) {
+			echo "<div align='center' style='margin-top:5px;'>\n".makepagenav($_GET['rowstart'], 1, $pagecount, 3, FUSION_SELF."?readmore=".$_GET['readmore']."&amp;")."\n</div>\n";
+		}
 		if ($data['news_allow_comments']) { showcomments("N", DB_NEWS, "news_id", $_GET['readmore'], FUSION_SELF."?readmore=".$_GET['readmore']); }
 		if ($data['news_allow_ratings']) { showratings("N", $_GET['readmore'], FUSION_SELF."?readmore=".$_GET['readmore']); }
 	} else {

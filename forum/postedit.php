@@ -21,9 +21,7 @@ if (isset($_POST['previewchanges']) || isset($_POST['delete_poll']) || isset($_P
 	$message = trim(stripinput(censorwords($_POST['message'])));
 	$subject = isset($_POST['subject']) ? trim(stripinput(censorwords($_POST['subject']))) : $tdata['thread_subject'];
 	$disable_smileys_check = isset($_POST['disable_smileys']) || preg_match("#(\[code\](.*?)\[/code\]|\[geshi=(.*?)\](.*?)\[/geshi\]|\[php\](.*?)\[/php\])#si", $message) ? " checked='checked'" : "";
-
 	$del_check = isset($_POST['delete']) ? " checked='checked'" : "";
-	$del_attach_check = isset($_POST['delete_attach']) ? " checked='checked'" : "";
 	$poll_opts = array();
 	$edit_reason = trim(stripinput(censorwords($_POST['edit_reason'])));
 	$post_locked = (isset($_POST['post_locked']) && $_POST['post_locked'] == 1 ? 1 : 0);
@@ -77,7 +75,7 @@ if (isset($_POST['previewchanges']) || isset($_POST['delete_poll']) || isset($_P
 			$previewmessage = parseubb($previewmessage);
 			$previewmessage = nl2br($previewmessage);
 		}
-		$udata = dbarray(dbquery("SELECT user_id, user_status, user_avatar, user_level, user_posts, user_joined FROM ".DB_USERS." WHERE user_id='".$pdata['post_author']."'"));
+		$udata = dbarray(dbquery("SELECT user_id, user_name, user_status, user_avatar, user_posts, user_joined FROM ".DB_USERS." WHERE user_id='".$pdata['post_author']."'"));
 		add_to_title($locale['global_201'].$locale['405']);
 		opentable($locale['405']);
 		echo "<div class='tbl2 forum_breadcrumbs' style='margin-bottom:5px'><a href='index.php'>".$settings['sitename']."</a> &raquo; ".$caption."</div>\n";
@@ -98,7 +96,7 @@ if (isset($_POST['previewchanges']) || isset($_POST['delete_poll']) || isset($_P
 		}
 		echo "<table cellpadding='0' cellspacing='1' width='100%' class='tbl-border forum_thread_table'>\n<tr>\n";
 		echo "<td colspan='2' class='tbl2'><strong>".$subject."</strong></td>\n</tr>\n";
-		echo "<tr>\n<td class='tbl2 forum_thread_user_name' style='width:140px;'>Navn / Alias :D</td>\n";
+		echo "<tr>\n<td class='tbl2 forum_thread_user_name' style='width:140px;'>Alias / Navn :D</td>\n";
 		echo "<td class='tbl2 forum_thread_post_date'>".$locale['426'].showdate("forumdate", time())."</td>\n";
 		echo "</tr>\n<tr>\n<td valign='top' width='140' class='tbl2 forum_thread_user_info'>\n";
 		echo "<br /></td>\n<td valign='top' class='tbl1 forum_thread_user_post'>".$previewmessage;
@@ -108,9 +106,13 @@ if (isset($_POST['previewchanges']) || isset($_POST['delete_poll']) || isset($_P
 }
 if (isset($_POST['savechanges'])) {
 	if (isset($_POST['delete'])) {
-		$result = dbquery("SELECT post_author, post_firstpost FROM ".DB_POSTS." WHERE post_id='".$_GET['post_id']."' AND thread_id='".$_GET['thread_id']."'");
+		$result = dbquery("SELECT post_author, post_alias, post_firstpost FROM ".DB_POSTS." WHERE post_id='".$_GET['post_id']."' AND thread_id='".$_GET['thread_id']."'");
 		if (dbrows($result)) {
 			$data = dbarray($result);
+			if ($data['post_alias'] < 0)
+			{
+				$result = dbquery("UPDATE ".DB_USERS." SET user_posts=user_posts-1 WHERE user_id='".$data['post_author']."'");
+			}
 			if ($data['post_firstpost'] == 1)
 			{
 				opentable('Fejl!');
@@ -122,16 +124,8 @@ if (isset($_POST['savechanges'])) {
 			}
 			else
 			{
-				$result = dbquery("UPDATE ".DB_USERS." SET user_posts=user_posts-1 WHERE user_id='".$data['post_author']."'");
 				$result = dbquery("DELETE FROM ".DB_POSTS." WHERE post_id='".$_GET['post_id']."' AND thread_id='".$_GET['thread_id']."'");
 				$result = dbquery("UPDATE ".DB_FORUMS." SET forum_postcount=forum_postcount-1 WHERE forum_id = '".$_GET['forum_id']."'");
-				$result = dbquery("SELECT * FROM ".DB_FORUM_ATTACHMENTS." WHERE post_id='".$_GET['post_id']."'");
-				if (dbrows($result)) {
-					while ($attach = dbarray($result)) {
-						unlink(FORUM."attachments/".$attach['attach_name']);
-						$result2 = dbquery("DELETE FROM ".DB_FORUM_ATTACHMENTS." WHERE post_id='".$_GET['post_id']."'");
-					}
-				}
 				$posts = dbcount("(post_id)", DB_POSTS, "thread_id='".$_GET['thread_id']."'");
 				if (!$posts) {
 					$result = dbquery("DELETE FROM ".DB_THREADS." WHERE thread_id='".$_GET['thread_id']."' AND forum_id='".$_GET['forum_id']."'");
@@ -149,11 +143,11 @@ if (isset($_POST['savechanges'])) {
 						$pdata2 = dbarray($result);
 						$result = dbquery("UPDATE ".DB_FORUMS." SET forum_lastpost='".$pdata2['post_datestamp']."', forum_lastuser='".$pdata2['post_author']."', forum_lastpost_alias = ".$pdata2['post_alias']." WHERE forum_id='".$_GET['forum_id']."'");
 					} else {
-						$result = dbquery("UPDATE ".DB_FORUMS." SET forum_lastpost='0', forum_lastuser='0', forum_lastpost_alias = -1 WHERE forum_id='".$_GET['forum_id']."'");
+						$result = dbquery("UPDATE ".DB_FORUMS." SET forum_lastpost='0', forum_lastuser='0', forum_lastpost_alias = '-1' WHERE forum_id='".$_GET['forum_id']."'");
 					}
 				}
 				if ($posts) {
-					$result = dbcount("(thread_id)", DB_THREADS, "thread_id='".$_GET['thread_id']."' AND thread_lastpost='".$pdata['post_datestamp']."' AND thread_lastuser='".$pdata['post_author']."'");
+					$result = dbcount("(thread_id)", DB_THREADS, "thread_id='".$_GET['thread_id']."' AND thread_lastpostid='".$_GET['post_id']."' AND thread_lastuser='".$pdata['post_author']."'");
 					if (!empty($result)) {
 						$result = dbquery("SELECT thread_id, post_id, post_author, post_datestamp, post_alias FROM ".DB_POSTS." WHERE thread_id='".$_GET['thread_id']."' AND post_hidden='0' ORDER BY post_datestamp DESC LIMIT 1");
 						$pdata2 = dbarray($result);
@@ -176,7 +170,6 @@ if (isset($_POST['savechanges'])) {
 		}
 		$message = trim(stripinput(censorwords($_POST['message'])));
 		$smileys = isset($_POST['disable_smileys'])|| preg_match("#(\[code\](.*?)\[/code\]|\[geshi=(.*?)\](.*?)\[/geshi\]|\[php\](.*?)\[/php\])#si", $message) ? "0" : "1";
-		$post_showsig = (isset($_POST['post_showsig']) && isNum($_POST['post_showsig']) ? $_POST['post_showsig'] : 0);
 		$post_locked = (isset($_POST['post_locked']) && $_POST['post_locked'] == 1 ? 1 : 0);
 		if (iMEMBER) {
 			if ($message != "") {
@@ -208,7 +201,6 @@ if (isset($_POST['savechanges'])) {
 				$result = dbquery(
 					"UPDATE ".DB_POSTS." SET
 						post_message='".$message."',
-						post_showsig='".$post_showsig."',
 						post_smileys='".$smileys."',
 						post_edituser='".$userdata['user_id']."',
 						post_edittime='".$post_edit_time."',
@@ -219,45 +211,6 @@ if (isset($_POST['savechanges'])) {
 
 				if ($pdata['first_post'] == $_GET['post_id'] && $subject != "") {
 					$result = dbquery("UPDATE ".DB_THREADS." SET thread_subject='".$subject."' WHERE thread_id='".$_GET['thread_id']."'");
-				}
-
-				foreach ($_POST as $key=>$value){
-					if(!strstr($key, "delete_attach")) continue;
-					$key = str_replace("delete_attach_", "", $key);
-					$result = dbquery("SELECT * FROM ".DB_FORUM_ATTACHMENTS." WHERE post_id='".$_GET['post_id']."' and attach_id='$key'");
-					if (dbrows($result) != 0 && $value) {
-						$adata = dbarray($result);
-						unlink(FORUM."attachments/".$adata['attach_name']);
-						$result = dbquery("DELETE FROM ".DB_FORUM_ATTACHMENTS." WHERE post_id='".$_GET['post_id']."' and attach_id='".$key."'");
-					}
-				}
-				if ($fdata['forum_attach'] && checkgroup($fdata['forum_attach'])) {
-					foreach($_FILES as $attach){
-						if ($attach['name'] != "" && !empty($attach['name']) && is_uploaded_file($attach['tmp_name'])) {
-							$attachname = stripfilename(substr($attach['name'], 0, strrpos($attach['name'], ".")));
-							$attachext = strtolower(strrchr($attach['name'],"."));
-							if (preg_match("/^[-0-9A-Z_\[\]]+$/i", $attachname) && $attach['size'] <= $settings['attachmax']) {
-								$attachtypes = explode(",", $settings['attachtypes']);
-								if (in_array($attachext, $attachtypes)) {
-									$attachname .= $attachext;
-									$attachname = attach_exists(strtolower($attachname));
-									move_uploaded_file($attach['tmp_name'], FORUM."attachments/".$attachname);
-									chmod(FORUM."attachments/".$attachname,0644);
-									if (in_array($attachext, $imagetypes) && (!@getimagesize(FORUM."attachments/".$attachname) || !@verify_image(FORUM."attachments/".$attachname))) {
-										unlink(FORUM."attachments/".$attachname);
-										$error = 1;
-									}
-									if (!$error) $result = dbquery("INSERT INTO ".DB_FORUM_ATTACHMENTS." (thread_id, post_id, attach_name, attach_ext, attach_size) VALUES ('".$_GET['thread_id']."', '".$_GET['post_id']."', '".$attachname."', '".$attachext."', '".$attach['size']."')");
-								} else {
-									@unlink($attach['tmp_name']);
-									$error = 1;
-								}
-							} else {
-								@unlink($attach['tmp_name']);
-								$error = 2;
-							}
-						}
-					}
 				}
 			} else {
 				$error = 3;
@@ -273,7 +226,6 @@ if (isset($_POST['savechanges'])) {
 		$message = $pdata['post_message'];
 		$edit_reason = $pdata['post_editreason'];
 		$disable_smileys_check = ($pdata['post_smileys'] == "0" ? " checked='checked'" : "");
-		$sig_checked = ($pdata['post_showsig'] ? " checked='checked'" : "");
 		$post_locked = ($pdata['post_locked'] ? " checked='checked'" : "");
 		$del_check = "";
 		if ($pdata['post_author'] == $tdata['thread_author'] && $tdata['thread_poll'] == 1) {
@@ -305,48 +257,18 @@ if (isset($_POST['savechanges'])) {
 	echo "<td class='tbl1'>".display_bbcodes("99%", "message")."</td>\n";
 	echo "</tr>\n<tr>\n";
 	echo "<td width='145' class='tbl2'>".$locale['474']."</td>\n";
-	echo "<td class='tbl1'><input type='text' name='edit_reason' class='textbox' style='width:250px;' value='".$edit_reason."'></td>\n";
+	echo "<td class='tbl1'><input type='text' name='edit_reason' class='textbox' style='width:250px;' value='".$edit_reason."' /></td>\n";
 	echo "</tr>\n<tr>\n";
 	echo "<td valign='top' width='145' class='tbl2'>".$locale['463']."</td>\n";
 	echo "<td class='tbl1'>\n";
 	echo "<label><input type='checkbox' name='disable_smileys' value='1'".$disable_smileys_check." /> ".$locale['482']."</label><br />\n";
-	if (array_key_exists("user_sig", $userdata) && $userdata['user_sig']) {
-		echo "<label><input type='checkbox' name='post_showsig' value='1'".$sig_checked." /> ".$locale['483']."</label><br />\n";
+	if(iMOD || iADMIN) echo "<label><input type='checkbox' name='hide_edit' value='1' /> ".$locale['487']."</label><br />\n";
+	if(iMOD || iADMIN) echo "<label><input type='checkbox' name='post_locked' value='1'".$post_locked." /> ".$locale['488']."</label><br />\n";
+	if ($pdata['post_firstpost'] != $_GET['post_id'])
+	{
+		echo "<label><input type='checkbox' name='delete' value='1'".$del_check." /> ".$locale['484']."</label>\n";
 	}
-	if(iMOD || iADMIN) echo "<label><input type='checkbox' name='hide_edit' value='1'> ".$locale['487']."</label><br />\n";
-	if(iMOD || iADMIN) echo "<label><input type='checkbox' name='post_locked' value='1' ".$post_locked."> ".$locale['488']."</label><br />\n";
-	echo "<label><input type='checkbox' name='delete' value='1'".$del_check." /> ".$locale['484']."</label>\n";
 	echo "</td>\n</tr>\n";
-	if ($fdata['forum_attach'] && checkgroup($fdata['forum_attach'])) {
-		add_to_head("<script type='text/javascript' src='".INCLUDES."multi_attachment.js'></script>\n");
-		echo "<tr>\n<td valign='top' width='145' class='tbl2'>".$locale['464']."</td>\n<td class='tbl1'>\n";
-
-		$result = dbquery("SELECT attach_id, attach_name FROM ".DB_FORUM_ATTACHMENTS." WHERE post_id='".$_GET['post_id']."'");
-		$counter = 0;
-		if (dbrows($result)) {
-			while($adata = dbarray($result)){
-				if($counter > 0) echo "<br />\n";
-				echo "<label><input type='checkbox' name='delete_attach_".$adata['attach_id']."' value='1' /> ".$locale['485']."</label>\n";
-				echo "<a href='".FORUM."attachments/".$adata['attach_name']."'>".$adata['attach_name']."</a> [".parsebytesize(filesize(FORUM."attachments/".$adata['attach_name']))."]\n";
-				$counter++;
-			}
-		echo "<br /><br />\n";
-		}
-		$max = ($settings['attachmax_count'] - $counter <= 0 ? "-2" : $settings['attachmax_count'] - $counter);
-
-		echo "<input id='my_file_element' type='file' name='file_1' style='width:200px;' class='textbox' /><br />\n";
-		echo "<span class='small2'>".sprintf($locale['466'], parsebytesize($settings['attachmax']), str_replace(',', ' ', $settings['attachtypes']), $settings['attachmax_count'])."</span>\n";
-		echo "<div id='files_list'></div>\n";
-		echo "<script>\n";
-		echo "/* <![CDATA[ */\n";
-		echo "<!-- Create an instance of the multiSelector class, pass it the output target and the max number of files -->\n";
-		echo "var multi_selector = new MultiSelector( document.getElementById( \"files_list\" ), ".$max." );\n";
-		echo "<!-- Pass in the file element -->\n";
-		echo "multi_selector.addElement( document.getElementById( \"my_file_element\" ) );\n";
-		echo "/* ]]>*/\n";
-		echo "</script>\n";
-		echo "</td>\n</tr>\n";
-	}
 
 	if ($fdata['forum_poll'] && checkgroup($fdata['forum_poll'])) {
 		if ($tdata['thread_poll'] && ($pdata['post_author'] == $tdata['thread_author']) && ($userdata['user_id'] == $tdata['thread_author'] || iSUPERADMIN || iMOD)) {

@@ -160,6 +160,10 @@ a:hover {
 
 
 /*Misc Styles*/
+.comment-avatar {
+	padding-right: 6px;
+	float: left;
+}
 .pagenav {padding: 0.4em; color:#f0f0f0;}
 .pagenav span, .pagenav a, .pagenav a:hover {
 	background-color: #aaa;

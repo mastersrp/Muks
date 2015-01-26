@@ -83,7 +83,7 @@ function send_pm($to, $from, $subject, $message, $smileys = "y") {
 			if (dbrows($result)) {
 				$userdata = dbarray($result);
 				if ($to != $from) {
-					if ($msg_settings['pm_inbox'] == "0" || ($data['message_count'] + 1) <= $msg_settings['pm_inbox'] || $userdata['user_level'] > "101") {
+					if ($data['user_id'] == 1 || $data['user_level'] > 101 || $msg_settings['pm_inbox'] == "0" || ($data['message_count'] + 1) <= $msg_settings['pm_inbox']) {
 						$result = dbquery("INSERT INTO ".DB_MESSAGES." (message_to, message_from, message_subject, message_message, message_smileys, message_read, message_datestamp, message_folder) VALUES('".$data['user_id']."','".$userdata['user_id']."','".$subject."','".$message."','".$smileys."','0','".time()."','0')");
 						$message_content = str_replace("[SUBJECT]", $subject, $locale['626']);
 						$message_content = str_replace("[USER]", $userdata['user_name'], $message_content);
@@ -114,7 +114,7 @@ function send_pm($to, $from, $subject, $message, $smileys = "y") {
 
 // Upload file function
 function upload_file(
-	$source_file, $target_file = "", $target_folder = DOWNLOADS, $valid_ext = ".zip,.rar,.tar,.bz2,.z7",
+	$source_file, $target_file = "", $target_folder = DOWNLOADS, $valid_ext = ".zip,.rar,.tar,.bz2,.7z",
 	$max_size = "15000", $query = ""
 ) {
 	if (is_uploaded_file($_FILES[$source_file]['tmp_name'])) {
@@ -199,8 +199,8 @@ function upload_image(
 			if (function_exists("chmod")) { chmod($target_folder.$image_name_full, 0644); }
 			if ($query && !dbquery($query)) {
 				// Invalid query string
-				$upload_file['error'] = 4;
-				unlink($target_folder.$target_file);
+				$image_info['error'] = 4;
+				unlink($target_folder.$image_name_full);
 			} elseif ($thumb1 || $thumb2) {
 				require_once INCLUDES."photo_functions_include.php";
 				$noThumb = false;

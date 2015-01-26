@@ -20,13 +20,13 @@ if (!defined("IN_FUSION")) { die("Access Denied"); }
 include LOCALE.LOCALESET."search/forums.php";
 
 if ($_GET['stype'] == "forums" || $_GET['stype']=="all") {
+	$sortby = 'post_datestamp';
 	if ($_GET['sort'] == "datestamp") {
 		$sortby = "post_datestamp";
 	} else if ($_GET['sort'] == "subject") {
 		$sortby = "thread_subject";
-	} else if ($_GET['sort'] == "author") {
-		$sortby = "post_author";
 	}
+	
 	$ssubject = search_querylike("thread_subject");
 	$smessage = search_querylike("post_message");
 	if ($_GET['fields'] == 0) {
@@ -55,14 +55,14 @@ if ($_GET['stype'] == "forums" || $_GET['stype']=="all") {
 		$items_count .= THEME_BULLET."&nbsp;<a href='".FUSION_SELF."?stype=forums&amp;stext=".$_GET['stext']."&amp;".$composevars."'>".$rows." ".($rows == 1 ? $locale['f402'] : $locale['f403'])." ".$locale['522']."</a><br  />\n";
 		$result = dbquery(
 			"SELECT tp.forum_id, tp.thread_id, tp.post_id, tp.post_message, tp.post_datestamp, tp.post_alias, tt.thread_subject,
-			tt.thread_sticky, tf.forum_access, tu.user_id, tu.user_name, tu.user_aliases, tu.user_status FROM ".DB_POSTS." tp
+			tt.thread_sticky, tf.forum_access, tu.user_id, tu.user_name, tu.user_status, tu.user_aliases FROM ".DB_POSTS." tp
 			LEFT JOIN ".DB_THREADS." tt ON tp.thread_id = tt.thread_id
 			LEFT JOIN ".DB_FORUMS." tf ON tp.forum_id = tf.forum_id
 			LEFT JOIN ".DB_USERS." tu ON tp.post_author=tu.user_id
 			WHERE ".groupaccess('forum_access').($_GET['forum_id'] != 0 ? " AND tf.forum_id=".$_GET['forum_id'] : "")."
 			AND ".$fieldsvar.($_GET['datelimit'] != 0 ? " AND post_datestamp>=".(time() - $_GET['datelimit']) : "")."
 			ORDER BY ".$sortby." ".($_GET['order'] == 1 ? "ASC" : "DESC").($_GET['stype'] != "all"?" LIMIT ".$_GET['rowstart'].",10" : "")
-		);		
+		);
 		while ($data = dbarray($result)) {
 			$search_result = "";
 			$text_all = search_striphtmlbbcodes($data['post_message']);

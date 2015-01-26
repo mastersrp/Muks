@@ -57,7 +57,7 @@ if (isset($_POST['save'])) {
 		if ($poll_title && count($poll_option)) {
 			$values = "";
 			for ($i = 0; $i < 10; $i++) {
-				$values .= ", '".$poll_option[$i]."'";
+				$values .= ", '".(isset($poll_option[$i]) ? $poll_option[$i] : "")."'";
 			}
 			$result = dbquery("UPDATE ".DB_POLLS." SET poll_ended='".time()."' WHERE poll_ended='0'");
 			$result = dbquery("INSERT INTO ".DB_POLLS." (poll_title, poll_opt_0, poll_opt_1, poll_opt_2, poll_opt_3, poll_opt_4, poll_opt_5, poll_opt_6, poll_opt_7, poll_opt_8, poll_opt_9, poll_started, poll_ended) VALUES ('".$poll_title."' ".$values.", '".time()."', '0')");

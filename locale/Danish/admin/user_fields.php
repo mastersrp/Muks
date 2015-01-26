@@ -22,7 +22,7 @@ $locale['424'] = "Opdater";
 $locale['425'] = "Slå til";
 $locale['426'] = "API Version:";
 $locale['427'] = "Obligatorisk";
-$Locale['428'] = "Dette brugerdefinerede felt understøtter ikke egenskaben <i>krævet</i>";
+$locale['428'] = "Dette brugerdefinerede felt understøtter ikke egenskaben <i>krævet</i>";
 $locale['429'] = "Log";
 $locale['429a'] = "Dette brugerdefinerede felt kan ikke logges";
 // Disabled user fields
@@ -37,5 +37,5 @@ $locale['451'] = "Information";
 $locale['452'] = "Brugervalg";
 $locale['453'] = "Statistik";
 
-$locale['480'] = "Oprettelse";
+$locale['480'] = "Brugeroprettelse";
 ?>

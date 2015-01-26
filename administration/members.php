@@ -34,12 +34,27 @@ $action = (isset($_GET['action']) && isnum($_GET['action']) ? $_GET['action'] : 
 
 define("USER_MANAGEMENT_SELF", FUSION_SELF.$aidlink."&sortby=$sortby&status=$status&rowstart=$rowstart");
 
+$checkRights = dbcount("(user_id)", DB_USERS, "user_id='".$user_id."' AND user_level>101");
+if ($checkRights > 0) {
+	$isAdmin = true;
+} else {
+	$isAdmin = false;
+}
+
+if (!iSUPERADMIN)
+{
+	if (isset($_GET['step']) || (isset($_GET['action']) && $_GET['action'] != 1))
+	{
+		redirect(USER_MANAGEMENT_SELF);
+	}
+}
+
 if (isset($_POST['cancel'])) {
 	redirect(USER_MANAGEMENT_SELF);
-} elseif (isset($_GET['step']) && $_GET['step'] == "log" && $user_id) {
+} elseif (isset($_GET['step']) && $_GET['step'] == "log" && $user_id  && (!$isAdmin || iSUPERADMIN)) {
 	display_suspend_log($user_id, "all", $rowstart);
 // Deactivate Inactive Users
-} elseif (isset($_GET['step']) && $_GET['step'] == "inactive"  && !$user_id && $settings['enable_deactivation'] == 1) {
+} elseif (isset($_GET['step']) && $_GET['step'] == "inactive"  && !$user_id && $settings['enable_deactivation'] == 1  && (!$isAdmin || iSUPERADMIN)) {
 	$inactive = dbcount("(user_id)", DB_USERS, "user_status='0' AND user_level<'103' AND user_lastvisit<'$time_overdue' AND user_actiontime='0'");
 	$action = ($settings['deactivation_action'] == 0 ? $locale['616'] : $locale['615']);
 	$button = $locale['614'].($inactive == 1 ? " 1 ".$locale['612'] : " 50 ".$locale['613']);
@@ -87,7 +102,7 @@ if (isset($_POST['cancel'])) {
 		redirect(FUSION_SELF.$aidlink);
 	}
 // Add new User
-} elseif (isset($_GET['step']) && $_GET['step'] == "add") {
+} elseif (isset($_GET['step']) && $_GET['step'] == "add"  && (!$isAdmin || iSUPERADMIN)) {
 	require_once CLASSES."UserFields.class.php";
 	require_once CLASSES."UserFieldsInput.class.php";
 
@@ -122,7 +137,7 @@ if (isset($_POST['cancel'])) {
 	}
 
 // View User Profile
-} elseif (isset($_GET['step']) && $_GET['step'] == "view" && $user_id) {
+} elseif (isset($_GET['step']) && $_GET['step'] == "view" && $user_id  && (!$isAdmin || iSUPERADMIN)) {
 	require_once CLASSES."UserFields.class.php";
 
 	$result = dbquery(
@@ -143,7 +158,7 @@ if (isset($_POST['cancel'])) {
 	closetable();
 
 // Edit User Profile
-} elseif (isset($_GET['step']) && $_GET['step'] == "edit" && $user_id) {
+} elseif (isset($_GET['step']) && $_GET['step'] == "edit" && $user_id  && (!$isAdmin || iSUPERADMIN)) {
 	require_once CLASSES."UserFields.class.php";
 	require_once CLASSES."UserFieldsInput.class.php";
 
@@ -181,9 +196,13 @@ if (isset($_POST['cancel'])) {
 	closetable();
 
 // Delete User
-} elseif (isset($_GET['step']) && $_GET['step'] == "delete" && $user_id) {
+} elseif (isset($_GET['step']) && $_GET['step'] == "delete" && $user_id  && (!$isAdmin || iSUPERADMIN)) {
 	$result = dbquery("SELECT user_id, user_avatar FROM ".DB_USERS." WHERE user_id='".$user_id."' AND user_level<'103'");
 	if (dbrows($result)) {
+		if (dbrows(dbquery('SELECT post_author FROM '.DB_POSTS.' WHERE post_author = "'.$data['user_id'].'"')))
+		{
+			redirect(USER_MANAGEMENT_SELF);
+		}
 		// Delete avatar
 		$data = dbarray($result);
 		if ($data['user_avatar'] != "" && file_exists(IMAGES."avatars/".$data['user_avatar'])) {
@@ -210,15 +229,13 @@ if (isset($_POST['cancel'])) {
 		$result = dbquery("DELETE FROM ".DB_POLL_VOTES." WHERE vote_user='".$user_id."'");
 		$result = dbquery("DELETE FROM ".DB_RATINGS." WHERE rating_user='".$user_id."'");
 		$result = dbquery("DELETE FROM ".DB_SUSPENDS." WHERE suspended_user='".$user_id."'");
-		$result = dbquery("DELETE FROM ".DB_THREADS." WHERE thread_author='".$user_id."'");
-		$result = dbquery("DELETE FROM ".DB_POSTS." WHERE post_author='".$user_id."'");
 		$result = dbquery("DELETE FROM ".DB_THREAD_NOTIFY." WHERE notify_user='".$user_id."'");
 		redirect(USER_MANAGEMENT_SELF."&status=dok");
 	} else {
 		redirect(USER_MANAGEMENT_SELF."&status=der");
 	}
 // Ban User
-} elseif (isset($_GET['action']) && $_GET['action'] == 1 && $user_id) {
+} elseif (isset($_GET['action']) && $_GET['action'] == 1 && $user_id  && (!$isAdmin || iSUPERADMIN)) {
 	require_once LOCALE.LOCALESET."admin/members_email.php";
 	require_once INCLUDES."sendmail_include.php";
 
@@ -262,7 +279,7 @@ if (isset($_POST['cancel'])) {
 		redirect(USER_MANAGEMENT_SELF."&status=ber");
 	}
 // Activate User
-} elseif (isset($_GET['action']) && $_GET['action'] == 2 && $user_id) {
+} elseif (isset($_GET['action']) && $_GET['action'] == 2 && $user_id  && (!$isAdmin || iSUPERADMIN)) {
 	require_once LOCALE.LOCALESET."admin/members_email.php";
 	require_once INCLUDES."sendmail_include.php";
 
@@ -279,7 +296,7 @@ if (isset($_POST['cancel'])) {
 		redirect(USER_MANAGEMENT_SELF."&status=aer");
 	}
 // Suspend User
-} elseif (isset($_GET['action']) && $_GET['action'] == 3 && $user_id) {
+} elseif (isset($_GET['action']) && $_GET['action'] == 3 && $user_id  && (!$isAdmin || iSUPERADMIN)) {
 	include LOCALE.LOCALESET."admin/members_email.php";
 	require_once INCLUDES."sendmail_include.php";
 
@@ -332,7 +349,7 @@ if (isset($_POST['cancel'])) {
 		redirect(USER_MANAGEMENT_SELF."&status=ser");
 	}
 // Security Ban User
-} elseif (isset($_GET['action']) && $_GET['action'] == 4 && $user_id) {
+} elseif (isset($_GET['action']) && $_GET['action'] == 4 && $user_id  && (!$isAdmin || iSUPERADMIN)) {
 	require_once LOCALE.LOCALESET."admin/members_email.php";
 	require_once INCLUDES."sendmail_include.php";
 
@@ -377,7 +394,7 @@ if (isset($_POST['cancel'])) {
 		redirect(USER_MANAGEMENT_SELF."&status=sber");
 	}
 // Cancel User
-} elseif (isset($_GET['action']) && $_GET['action'] == 5 && $user_id) {
+} elseif (isset($_GET['action']) && $_GET['action'] == 5 && $user_id  && (!$isAdmin || iSUPERADMIN)) {
 	$result = dbquery("SELECT user_status FROM ".DB_USERS." WHERE user_id='".$user_id."' AND user_level<'103'");
 	if (dbrows($result)) {
 		$udata = dbarray($result);
@@ -393,7 +410,7 @@ if (isset($_POST['cancel'])) {
 		redirect(USER_MANAGEMENT_SELF);
 	}
 // Annonymise User
-} elseif (isset($_GET['action']) && $_GET['action'] == 6 && $user_id) {
+} elseif (isset($_GET['action']) && $_GET['action'] == 6 && $user_id  && (!$isAdmin || iSUPERADMIN)) {
 	$result = dbquery("SELECT user_status FROM ".DB_USERS." WHERE user_id='".$user_id."' AND user_level<'103'");
 	if (dbrows($result)) {
 		$udata = dbarray($result);
@@ -409,7 +426,7 @@ if (isset($_POST['cancel'])) {
 		redirect(USER_MANAGEMENT_SELF);
 	}
 // Deactivate User
-} elseif (isset($_GET['action']) && $_GET['action'] == 7 && $user_id) {
+} elseif (isset($_GET['action']) && $_GET['action'] == 7 && $user_id  && (!$isAdmin || iSUPERADMIN)) {
 	$result = dbquery("SELECT user_status FROM ".DB_USERS." WHERE user_id='".$user_id."' AND user_level<'103'");
 	if (dbrows($result)) {
 		$udata = dbarray($result);
@@ -498,26 +515,28 @@ if (isset($_POST['cancel'])) {
 			echo "<tr>\n<td class='$cell_color'><a href='".FUSION_SELF.$aidlink."&amp;step=view&amp;user_id=".$data['user_id']."'>".$data['user_name']."</a></td>\n";
 			echo "<td align='center' width='1%' class='$cell_color' style='white-space:nowrap'>".getuserlevel($data['user_level'])."</td>\n";
 			echo "<td align='center' width='1%' class='$cell_color' style='white-space:nowrap'>";
-			echo "<a href='".FUSION_SELF.$aidlink."&amp;step=edit&amp;user_id=".$data['user_id']."'>".$locale['406']."</a>\n";
-			if ($status == 0) { echo "- <a href='".stripinput(USER_MANAGEMENT_SELF."&action=3&user_id=".$data['user_id'])."'>".$locale['553']."</a>\n";
-			} elseif ($status == 2) { $title = $locale['407'];
-			} elseif ($status != 8) { $title = $locale['419']; }
-			if ($title) { echo "- <a href='".stripinput(USER_MANAGEMENT_SELF."&action=$status&user_id=".$data['user_id'])."'>$title</a>\n"; }
-			echo "- <a href='".stripinput(USER_MANAGEMENT_SELF."&step=delete&user_id=".$data['user_id'])."' onclick='return DeleteMember();'>".$locale['410']."</a>\n";
-			if ($status == 0) {
-				echo "<form name='editstatus_".$data['user_id']."' method='get' action='".FUSION_SELF."'>\n";
-				echo "<input type='hidden' name='aid' value='".iAUTH."' />\n";
-				echo "<input type='hidden' name='sortby' value='$sortby' />\n";
-				echo "<input type='hidden' name='status' value='$status' />\n";
-				echo "<input type='hidden' name='rowstart' value='$rowstart' />\n";
-				echo "<select name='action' class='textbox' onchange='submit()'>\n";
-				echo "<option value='' selected='selected'>-- ".$locale['417']." --</option>\n";
-				for ($ii = 1; $ii < 8; $ii++) {
-					if ($ii != 2 && $ii != 4) { echo "<option value='$ii'>".getsuspension($ii, true)."</option>\n"; }
+			if (iSUPERADMIN || $data['user_level'] < 102) {
+				echo "<a href='".FUSION_SELF.$aidlink."&amp;step=edit&amp;user_id=".$data['user_id']."'>".$locale['406']."</a>\n";
+				if ($status == 0) { echo "- <a href='".stripinput(USER_MANAGEMENT_SELF."&action=3&user_id=".$data['user_id'])."'>".$locale['553']."</a>\n";
+				} elseif ($status == 2) { $title = $locale['407'];
+				} elseif ($status != 8) { $title = $locale['419']; }
+				if ($title) { echo "- <a href='".stripinput(USER_MANAGEMENT_SELF."&action=$status&user_id=".$data['user_id'])."'>$title</a>\n"; }
+				echo "- <a href='".stripinput(USER_MANAGEMENT_SELF."&step=delete&user_id=".$data['user_id'])."' onclick='return DeleteMember();'>".$locale['410']."</a>\n";
+				if ($status == 0) {
+					echo "<form name='editstatus_".$data['user_id']."' method='get' action='".FUSION_SELF."'>\n";
+					echo "<input type='hidden' name='aid' value='".iAUTH."' />\n";
+					echo "<input type='hidden' name='sortby' value='$sortby' />\n";
+					echo "<input type='hidden' name='status' value='$status' />\n";
+					echo "<input type='hidden' name='rowstart' value='$rowstart' />\n";
+					echo "<select name='action' class='textbox' onchange='submit()'>\n";
+					echo "<option value='' selected='selected'>-- ".$locale['417']." --</option>\n";
+					for ($ii = 1; $ii < 8; $ii++) {
+						if ($ii != 2 && $ii != 4) { echo "<option value='$ii'>".getsuspension($ii, true)."</option>\n"; }
+					}
+					echo "</select>\n";
+					echo "<input type='hidden' name='user_id' value='".$data['user_id']."' />\n";
+					echo "</form>\n";
 				}
-				echo "</select>\n";
-				echo "<input type='hidden' name='user_id' value='".$data['user_id']."' />\n";
-				echo "</form>\n";
 			}
 			echo "</td>\n</tr>\n"; $i++;
 		}

@@ -90,14 +90,14 @@ if ((isset($_GET['action']) && $_GET['action'] == "newthread") && ($fdata['forum
 		redirect("index.php");
 	}
 
-	$result = dbquery("SELECT tp.*, tt.thread_subject, MIN(tp2.post_id) AS first_post FROM ".DB_POSTS." tp
+	$result = dbquery("SELECT tp.*, tt.thread_subject FROM ".DB_POSTS." tp
 	INNER JOIN ".DB_THREADS." tt on tp.thread_id=tt.thread_id
-	INNER JOIN ".DB_POSTS." tp2 on tp.thread_id=tp2.thread_id
-	WHERE tp.post_id='".$_GET['post_id']."' AND tp.thread_id='".$tdata['thread_id']."' AND tp.forum_id='".$fdata['forum_id']."' GROUP BY tp2.post_id");
+	WHERE tp.post_id='".$_GET['post_id']."' AND tp.thread_id='".$tdata['thread_id']."' AND tp.forum_id='".$fdata['forum_id']."'");
 
 	if (dbrows($result)) {
 		$pdata = dbarray($result);
-		$last_post = dbarray(dbquery("SELECT post_id FROM ".DB_POSTS." WHERE thread_id='".$_GET['thread_id']."' AND forum_id='".$_GET['forum_id']."' AND post_hidden='0' ORDER BY post_datestamp DESC LIMIT 1"));
+		$pdata['first_post'] = $pdata['post_firstpost'];
+		$last_post = $tdata['thread_lastpostid'];
 	} else {
 		redirect("index.php");
 	}

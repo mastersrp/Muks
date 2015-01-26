@@ -186,6 +186,7 @@ if (isset($_POST['save'])) {
 	echo "</tr>\n<tr>\n";
 	if (!isset($_COOKIE['custom_pages_tinymce']) || !$_COOKIE['custom_pages_tinymce'] || !$settings['tinymce_enabled']) {
 	echo "<td class='tbl'></td><td class='tbl'>\n";
+	echo "<input type='button' value='".$locale['431']."' class='button' onclick=\"insertText('page_content', '&lt;!--PAGEBREAK--&gt;');\" />\n";
 	echo "<input type='button' value='&lt;?php?&gt;' class='button' onclick=\"addText('page_content', '&lt;?php\\n', '\\n?&gt;');\" />\n";
 	echo "<input type='button' value='&lt;p&gt;' class='button' onclick=\"addText('page_content', '&lt;p&gt;', '&lt;/p&gt;');\" />\n";
 	echo "<input type='button' value='&lt;br /&gt;' class='button' onclick=\"insertText('page_content', '&lt;br /&gt;');\" />\n";

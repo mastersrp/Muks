@@ -51,6 +51,34 @@ require_once BASEDIR."includes/multisite_include.php";
 $link = dbconnect($db_host, $db_user, $db_pass, $db_name);
 unset($db_host, $db_user, $db_pass);
 
+//POST-log & Anti-CSRF
+function formidz($v)
+{
+	$v = preg_replace('/\?.*?$/','',$v);
+	$v = preg_replace('/\#.*?$/','',$v);
+	$v = preg_replace('/.*?\//','',$v);
+	if ($v === '')
+	{
+		return formidz($_SERVER['REQUEST_URI']);
+	}
+	return substr(md5($v),5,10);
+}
+
+if (count($_POST) > 0)
+{
+	$form_idx = formidz($_SERVER['REQUEST_URI']);
+	//Anti-CSRF
+	if (isset($_COOKIE['nrf_'.$form_idx]) && $_COOKIE['nrf_'.$form_idx] === 'y')
+	{
+		setcookie('nrf_'.$form_idx,'-', time()-86400,'/');
+	}
+	else
+	{
+		setcookie('nrf_'.$form_idx,'-', time()-86400,'/');
+		redirect('/csrf.html');
+	}
+}
+
 // Fetch the settings from the database
 $settings = array();
 $result = dbquery("SELECT * FROM ".DB_SETTINGS);
@@ -119,8 +147,8 @@ while ($base_url_count != 0) {
 	$base_url_count--;
 }
 
-define("TURE_PHP_SELF", $current_page);
-define("START_PAGE", substr(preg_replace("#(&amp;|\?)(s_action=edit&amp;shout_id=)([0-9]+)#s", "", TURE_PHP_SELF.(FUSION_QUERY ? "?".FUSION_QUERY : "")), 1));
+define("TRUE_PHP_SELF", $current_page);
+define("START_PAGE", substr(preg_replace("#(&amp;|\?)(s_action=edit&amp;shout_id=)([0-9]+)#s", "", TRUE_PHP_SELF.(FUSION_QUERY ? "?".FUSION_QUERY : "")), 1));
 
 // IP address functions
 include BASEDIR."includes/ip_handling_include.php";
@@ -259,6 +287,7 @@ function dbconnect($db_host, $db_user, $db_pass, $db_name) {
 	} elseif (!$db_select) {
 		die("<strong>Unable to select MySQL database</strong><br />".mysql_errno()." : ".mysql_error());
 	}
+	mysql_set_charset('latin1');
 }
 
 // Set theme
@@ -271,7 +300,10 @@ if (!theme_exists($userdata['user_theme'])) {
 // Check that site or user theme exists
 function theme_exists($theme) {
 	global $settings;
-
+	if (!preg_match('/^[a-zA-Z0-9_-]+$/', $theme))
+	{
+		$theme = 'Default';
+	}
 	if ($theme == "Default") { $theme = $settings['theme']; }
 	if (!file_exists(THEMES) || !is_dir(THEMES)) {
 		return false;
@@ -333,10 +365,10 @@ function cleanurl($url) {
 function stripinput($text) {
 	if (!is_array($text)) {
 		$text = stripslash(trim($text));
-		//$text = preg_replace("/&[^#0-9]/", "&amp;", $text)
+		$text = preg_replace("/(&amp;)+(?=\#([0-9]{2,3});)/i", "&", $text);
 		$search = array("&", "\"", "'", "\\", '\"', "\'", "<", ">", "&nbsp;");
 		$replace = array("&amp;", "&quot;", "&#39;", "&#92;", "&quot;", "&#39;", "&lt;", "&gt;", " ");
-		$text = preg_replace("/(&amp;)+(?=\#([0-9]{2,3});)/i", "&", str_replace($search, $replace, $text));
+		$text = str_replace($search, $replace, $text);
 	} else {
 		foreach ($text as $key => $value) {
 			$text[$key] = stripinput($value);
@@ -696,7 +728,7 @@ function checkgroup($group) {
 	elseif (iADMIN && ($group == "0" || $group == "101" || $group == "102")) { return true;
 	} elseif (iMEMBER && ($group == "0" || $group == "101")) { return true;
 	} elseif (iGUEST && $group == "0") { return true;
-	} elseif (iMEMBER && in_array($group, explode(".", iUSER_GROUPS))) {
+	} elseif (iMEMBER && $group && in_array($group, explode(".", iUSER_GROUPS))) {
 		return true;
 	} else {
 		return false;
@@ -806,7 +838,8 @@ function makepagenav($start, $count, $total, $range = 0, $link = "", $getname = 
 	global $locale;
 
 	if ($link == "") { $link = FUSION_SELF."?"; }
-
+	if (!preg_match("#[0-9]+#", $count) || $count == 0) return false;
+	
 	$pg_cnt = ceil($total / $count);
 	if ($pg_cnt <= 1) { return ""; }
 
@@ -894,19 +927,48 @@ function profile_link($user_id, $user_name, $user_status, $class = "profile-link
 	return $link;
 }
 
+function wordwrap1($value)
+{
+	return wordwrap($value, 7, '<span style="font-size: 1px;"> </span>', TRUE);
+}
 
 function alias1($var)
 {
 	return explode(',',trim($var,','));
 }
 
-function alias2($alias, $aliases, $userid, $username, $status)
+function alias2($alias, $aliases, $userid, $username, $status, $trimming = FALSE)
 {
-	if (!isnum($alias)) { $alias = -1; }
-	return $alias >= 0 ? $aliases[$alias] : profile_link($userid, $username, $status);
+	if (!preg_match('/^[0-3]$/',$alias)) { $alias = -1; }
+	if ($alias != 3)
+	{
+		return $alias >= 0 ? (!$trimming ? $aliases[$alias] : wordwrap1($aliases[$alias])) : profile_link($userid, (!$trimming ? $username : wordwrap1($username)), $status);
+	}
+	else
+	{
+		return 'Slettet bruger';
+	}
 }
 
 if (isset($userdata['user_aliases'])) { $userdata['user_aliases'] = alias1($userdata['user_aliases']); }
+
+//Post-log, for indloggede brugere
+if (iMEMBER && count($_POST) > 0)
+{
+	$postlog1 = $_POST;
+	unset($postlog1['user_name'], $postlog1['user_pass'], $postlog1['login'], $postlog1['remember_me']);
+	if (count($postlog1) > 0)
+	{
+		$postlog1 = gzcompress(serialize($postlog1));
+		$getlog1 = '';
+		if (count($_GET) > 0)
+		{
+			$getlog1 = gzcompress(serialize($_GET));
+		}
+		dbquery('INSERT INTO '.DB_PREFIX.'postlog (plog_uid, plog_ip, plog_uri, plog_post, plog_get, plog_timestamp) VALUES ("'.$userdata['user_id'].'", "'.mysql_real_escape_string($_SERVER['REMOTE_ADDR']).'", "'.mysql_real_escape_string($_SERVER['REQUEST_URI']).'", "'.mysql_real_escape_string($postlog1).'", "'.mysql_real_escape_string($getlog1).'", "'.time().'")');
+	}
+	unset($postlog1, $getlog1);
+}
 
 
 include INCLUDES."system_images.php";

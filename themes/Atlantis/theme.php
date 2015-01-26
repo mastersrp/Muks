@@ -69,6 +69,37 @@ echo "\t</div>
 
 }
 
+/* New in v7.02 - render comments */
+function render_comments($c_data, $c_info){
+	global $locale, $settings;
+	opentable($locale['c100']);
+	if (!empty($c_data)){
+		echo "<div class='comments floatfix'>\n";
+			$c_makepagenav = '';
+			if ($c_info['c_makepagenav'] !== FALSE) { 
+			echo $c_makepagenav = "<div style='text-align:center;margin-bottom:5px;'>".$c_info['c_makepagenav']."</div>\n"; 
+		}
+			foreach($c_data as $data) {
+	        $comm_count = "<a href='".FUSION_REQUEST."#c".$data['comment_id']."' id='c".$data['comment_id']."' name='c".$data['comment_id']."'>#".$data['i']."</a>";
+			echo "<div class='tbl2 clearfix floatfix'>\n";
+			if ($settings['comments_avatar'] == "1") { echo "<span class='comment-avatar'>".$data['user_avatar']."</span>\n"; }
+	        echo "<span style='float:right' class='comment_actions'>".$comm_count."\n</span>\n";
+			echo "<span class='comment-name'>".$data['comment_name']."</span>\n<br />\n";
+			echo "<span class='small'>".$data['comment_datestamp']."</span>\n";
+	if ($data['edit_dell'] !== false) { echo "<br />\n<span class='comment_actions'>".$data['edit_dell']."\n</span>\n"; }
+			echo "</div>\n<div class='tbl1 comment_message'>".$data['comment_message']."</div>\n";
+		}
+		echo $c_makepagenav;
+		if ($c_info['admin_link'] !== FALSE) {
+			echo "<div style='float:right' class='comment_admin'>".$c_info['admin_link']."</div>\n";
+		}
+		echo "</div>\n";
+	} else {
+		echo $locale['c101']."\n";
+	}
+	closetable();   
+}
+
 function render_news($subject, $news, $info) {
 
 global $locale;

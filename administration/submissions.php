@@ -231,17 +231,6 @@ if ((isset($_GET['action']) && $_GET['action'] == "2") && (isset($_GET['t']) && 
 		echo "<a href='index.php".$aidlink."'>".$locale['403']."</a></div><br />\n";
 		closetable();
 	} else {
-		if (isset($_POST['preview']) && (isset($_GET['submit_id']) && isnum($_GET['submit_id']))) {
-			$news_subject = stripinput($_POST['news_subject']);
-			$news_cat = isnum($_POST['news_cat']) ? $_POST['news_cat'] : "0";
-			$news_snippet = stripslash($_POST['news_snippet']);
-			$news_body = stripslash($_POST['news_body']);
-			$breaks = (isset($_POST['line_breaks']) ? " checked='checked'" : "");
-			opentable($news_subject);
-			echo $locale['509']." ".(isset($_POST['line_breaks']) ? nl2br($news_snippet) : $news_snippet)."<br /><br />";
-			echo $locale['508']." ".(isset($_POST['line_breaks']) ? nl2br($news_body) : $news_body);
-			closetable();
-		}
 		if ($settings['tinymce_enabled'] == 1) echo "<script type='text/javascript'>advanced();</script>\n";
 		$result = dbquery(
 			"SELECT ts.submit_criteria, tu.user_id, tu.user_name, tu.user_status
@@ -260,11 +249,7 @@ if ((isset($_GET['action']) && $_GET['action'] == "2") && (isset($_GET['t']) && 
 				$news_snippet = "";
 			}
 			$news_body = phpentities(stripslashes($submit_criteria['news_body']));
-			if ($settings['tinymce_enabled'] != 1) {
-				$news_breaks = $submit_criteria['news_breaks'];
-			} else {
-				$news_breaks = "";
-			}
+			$news_breaks = "";
 			$news_cat_opts = ""; $sel = "";
 			$result2 = dbquery("SELECT news_cat_id, news_cat_name FROM ".DB_NEWS_CATS." ORDER BY news_cat_name");
 			if (dbrows($result2)) {
@@ -274,6 +259,17 @@ if ((isset($_GET['action']) && $_GET['action'] == "2") && (isset($_GET['t']) && 
 				}
 			}
 			add_to_title($locale['global_200'].$locale['503'].$locale['global_201'].$news_subject."?");
+			if (isset($_POST['preview']) && (isset($_GET['submit_id']) && isnum($_GET['submit_id']))) {
+				$news_subject = stripinput($_POST['news_subject']);
+				$news_cat = isnum($_POST['news_cat']) ? $_POST['news_cat'] : "0";
+				$news_snippet = stripslash($_POST['news_snippet']);
+				$news_body = stripslash($_POST['news_body']);
+				$breaks = (isset($_POST['line_breaks']) ? " checked='checked'" : "");
+				opentable($news_subject);
+				echo $locale['509']." ".(isset($_POST['line_breaks']) ? nl2br($news_snippet) : $news_snippet)."<br /><br />";
+				echo $locale['508']." ".(isset($_POST['line_breaks']) ? nl2br($news_body) : $news_body);
+				closetable();
+			}
 			opentable($locale['500']);
 			echo "<form name='publish' method='post' action='".FUSION_SELF.$aidlink."&amp;sub=submissions&amp;action=2&amp;t=n&amp;submit_id=".$_GET['submit_id']."'>\n";
 			echo "<table cellpadding='0' cellspacing='0' class='center'>\n<tr>\n";
@@ -350,17 +346,6 @@ if ((isset($_GET['action']) && $_GET['action'] == "2") && (isset($_GET['t']) && 
 		echo "<a href='index.php".$aidlink."'>".$locale['403']."</a></div><br />\n";
 		closetable();
 	} else {
-		if (isset($_POST['preview']) && (isset($_GET['submit_id']) && isnum($_GET['submit_id']))) {
-			$article_cat = isnum($_POST['article_cat']) ? $_POST['article_cat'] : "0";
-			$article_subject = stripinput($_POST['article_subject']);
-			$article_snippet = stripslash($_POST['article_snippet']);
-			$article_body = stripslash($_POST['article_body']);
-			$breaks = (isset($_POST['line_breaks']) ? " checked='checked'" : "");
-			opentable($article_subject);
-			echo $locale['547']." ".(isset($_POST['line_breaks']) ? nl2br($article_snippet) : $article_snippet)."<br /><br />";
-			echo $locale['548']." ".(isset($_POST['line_breaks']) ? nl2br($article_body) : $article_body);
-			closetable();
-		}
 		if ($settings['tinymce_enabled'] == 1) {
 			echo "<script type='text/javascript'>advanced();</script>\n";
 		}
@@ -377,7 +362,7 @@ if ((isset($_GET['action']) && $_GET['action'] == "2") && (isset($_GET['t']) && 
 			$article_subject = $submit_criteria['article_subject'];
 			$article_snippet = phpentities(stripslashes($submit_criteria['article_snippet']));
 			$article_body = phpentities(stripslashes($submit_criteria['article_body']));
-			$article_breaks = $submit_criteria['article_breaks'];
+			$article_breaks = "";
 			$result2 = dbquery("SELECT article_cat_id, article_cat_name FROM ".DB_ARTICLE_CATS." ORDER BY article_cat_name DESC");
 			$article_cat_opts = ""; $sel = "";
 			while ($data2 = dbarray($result2)) {
@@ -385,6 +370,17 @@ if ((isset($_GET['action']) && $_GET['action'] == "2") && (isset($_GET['t']) && 
 				$article_cat_opts .= "<option value='".$data2['article_cat_id']."'$sel>".$data2['article_cat_name']."</option>\n";
 			}
 			add_to_title($locale['global_200'].$locale['543'].$locale['global_201'].$article_subject."?");
+			if (isset($_POST['preview']) && (isset($_GET['submit_id']) && isnum($_GET['submit_id']))) {
+				$article_cat = isnum($_POST['article_cat']) ? $_POST['article_cat'] : "0";
+				$article_subject = stripinput($_POST['article_subject']);
+				$article_snippet = stripslash($_POST['article_snippet']);
+				$article_body = stripslash($_POST['article_body']);
+				$breaks = (isset($_POST['line_breaks']) ? " checked='checked'" : "");
+				opentable($article_subject);
+				echo $locale['547']." ".(isset($_POST['line_breaks']) ? nl2br($article_snippet) : $article_snippet)."<br /><br />";
+				echo $locale['548']." ".(isset($_POST['line_breaks']) ? nl2br($article_body) : $article_body);
+				closetable();
+			}
 			opentable($locale['540']);
 			echo "<form name='publish' method='post' action='".FUSION_SELF.$aidlink."&amp;sub=submissions&amp;action=2&amp;t=a&amp;submit_id=".$_GET['submit_id']."'>\n";
 			echo "<table cellpadding='0' cellspacing='0' class='center'>\n<tr>\n";

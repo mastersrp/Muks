@@ -54,19 +54,22 @@ class Authenticate {
 
 			// Check if input password is valid
 			if ($passAuth->isValidCurrentPassword(true)) {
-				$user['user_algo'] 					= $passAuth->getNewAlgo();
-				$user['user_salt'] 					= $passAuth->getNewSalt();
-				$user['user_password'] 				= $passAuth->getNewHash();
+				if ($settings['multiple_logins'] != 1) {
+					$user['user_algo'] 					= $passAuth->getNewAlgo();
+					$user['user_salt'] 					= $passAuth->getNewSalt();
+					$user['user_password'] 				= $passAuth->getNewHash();
 
-				$result = dbquery(
-					"UPDATE ".DB_USERS."
-					SET user_algo='".$user['user_algo']."', user_salt='".$user['user_salt']."',
-						user_password='".$user['user_password']."'
-					WHERE user_id='".$user['user_id']."'"
-				);
+					$result = dbquery(
+						"UPDATE ".DB_USERS."
+						SET user_algo='".$user['user_algo']."', user_salt='".$user['user_salt']."',
+							user_password='".$user['user_password']."'
+						WHERE user_id='".$user['user_id']."'"
+					);
+				}
 
 				if ($user['user_status'] == 0 && $user['user_actiontime'] == 0) {
 					Authenticate::setUserCookie($user['user_id'], $user['user_salt'], $user['user_algo'], $remember, true);
+					Authenticate::_setUserTheme($user);
 					$this->_userData = $user;
 				} else {
 					require_once INCLUDES."suspend_include.php";
@@ -129,8 +132,7 @@ class Authenticate {
 
 		//header("P3P: CP='NOI ADM DEV PSAi COM NAV OUR OTRo STP IND DEM'");
 		Authenticate::_setCookie($cookieName, $cookieContent, $cookieExpiration, $cookiePath, COOKIE_DOMAIN, false, true);
-		Authenticate::_setCookie(COOKIE_LASTVISIT, '', time()-10000, COOKIE_PATH, COOKIE_DOMAIN, false, true);
-		unset($_COOKIE[COOKIE_LASTVISIT]);
+
 		// Unable to set cookies properly
 		if (!isset($_COOKIE[COOKIE_VISITED])) {
 			redirect(Authenticate::getRedirectUrl(3));
@@ -150,11 +152,13 @@ class Authenticate {
 				if ($cookieExpiration > time()) {
 					$result = dbquery(
 						"SELECT * FROM ".DB_USERS."
-						WHERE user_id='".$userID."' AND user_status='0' AND user_actiontime='0'
+						WHERE user_id='".(isnum($userID) ? $userID : 0)."' AND user_status='0' AND user_actiontime='0'
 						LIMIT 1"
 					);
 					if (dbrows($result) == 1) {
 						$user = dbarray($result);
+
+						Authenticate::_setUserTheme($user);
 
 						$key = hash_hmac($user['user_algo'], $userID.$cookieExpiration, $user['user_salt']);
 						$hash = hash_hmac($user['user_algo'], $userID.$cookieExpiration, $key);
@@ -243,22 +247,39 @@ class Authenticate {
 	// Checks or sets the lastvisit cookie
 	public static function setLastVisitCookie() {
 		global $userdata;
+		$guest_lastvisit = time() - 3600; $update_threads = false; $set_cookie = true;
+		$cookie_exists   = isset($_COOKIE[COOKIE_LASTVISIT]) && isnum($_COOKIE[COOKIE_LASTVISIT]) ? true : false;
 
-		if (isset($_COOKIE[COOKIE_LASTVISIT]) && isnum($_COOKIE[COOKIE_LASTVISIT])) {
-			return $_COOKIE[COOKIE_LASTVISIT];
-		} else {
-			if (iMEMBER) {
-				$result = dbquery("UPDATE ".DB_USERS." SET user_threads='' WHERE user_id='".$userdata['user_id']."'");
-				$lastvisit = $userdata['user_lastvisit'];
+		if (iMEMBER) {
+			if ($cookie_exists) {
+				if ($_COOKIE[COOKIE_LASTVISIT] > $userdata['user_lastvisit']) {
+					$update_threads = true;
+					$lastvisit      = $userdata['user_lastvisit'];
+				} else {
+					$set_cookie = false;
+					$lastvisit  = $_COOKIE[COOKIE_LASTVISIT];
+				}
 			} else {
-				$lastvisit = time()-3600;
+				$update_threads = true;
+				$lastvisit      = $userdata['user_lastvisit'];
+			}         
+			if ($update_threads) { dbquery("UPDATE ".DB_USERS." SET user_threads='' WHERE user_id='".$userdata['user_id']."'"); }
+		} else {
+			if ($cookie_exists) {
+				if ($_COOKIE[COOKIE_LASTVISIT] > $guest_lastvisit) {
+					$lastvisit = $guest_lastvisit;
+				} else {
+					$set_cookie = false;
+					$lastvisit  = $_COOKIE[COOKIE_LASTVISIT];
+				}
+			} else {
+				$lastvisit = $guest_lastvisit;
 			}
-
-			//header("P3P: CP='NOI ADM DEV PSAi COM NAV OUR OTRo STP IND DEM'");
-			Authenticate::_setCookie(COOKIE_LASTVISIT, $lastvisit, time() + 3600, COOKIE_PATH, COOKIE_DOMAIN, false, true);
-
-			return $lastvisit;
 		}
+		if ($set_cookie) {
+			Authenticate::_setCookie(COOKIE_LASTVISIT, $lastvisit, time() + 3600, COOKIE_PATH, COOKIE_DOMAIN, false, true);      
+		}
+		return $lastvisit;
 	}
 
 	// Checks and sets the admin last visit cookie
@@ -314,6 +335,15 @@ class Authenticate {
 		global $settings;
 
 		return array("user_level" => 0, "user_rights" => "", "user_groups" => "", "user_theme" => $settings['theme']);
+	}
+
+	// Set user theme
+	private static function _setUserTheme(&$user) {
+		global $settings;
+
+		if ($settings['userthemes'] == 0 && $user['user_level'] < 102 && $user['user_theme'] != "Default") {
+			$user['user_theme'] = "Default";
+		}
 	}
 
 	private static function _setCookie ($cookieName, $cookieContent, $cookieExpiration, $cookiePath, $cookieDomain, $secure = false, $httpOnly = false) {

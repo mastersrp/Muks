@@ -36,7 +36,7 @@ function sendemail($toname, $toemail, $fromname, $fromemail, $subject, $message,
 		$mail->IsSMTP();
 		$mail->Host = $settings['smtp_host'];
 		$mail->Port = $settings['smtp_port'];
-		$mail->SMTPAuth = (!empty($settings['smtp_username']) && !empty($settings['smtp_password'])) ? true : false;
+		$mail->SMTPAuth = $settings['smtp_auth'] ? true : false;
 		$mail->Username = $settings['smtp_username'];
 		$mail->Password = $settings['smtp_password'];
 	}

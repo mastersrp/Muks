@@ -33,6 +33,7 @@ $locale['437'] = "Gem nyhed";
 $locale['438'] = "[UDKAST]";
 $locale['439'] = "Nyhedsbillede";
 $locale['440'] = "Maksimal filstørrelse: %s / Tilladte filtyper: GIF, JPEG eller PNG.";
+$locale['441'] = "Sidemellemrum";
 // Popup Error/Warning Messages
 $locale['450'] = "Du skal angive en overskrift";
 $locale['451'] = "Skal denne nyhed slettes?";

@@ -15,6 +15,11 @@
 | copyright header is strictly prohibited without
 | written permission from the original author(s).
 +--------------------------------------------------------*/
+if (isset($error_message))
+{
+	unset($error_message);
+}
+
 require_once "../maincore.php";
 
 if (!checkRights("NC") || !defined("iAUTH") || !isset($_GET['aid']) || $_GET['aid'] != iAUTH) { redirect("../index.php"); }
@@ -118,7 +123,7 @@ if ($rows != 0) {
 	while ($data = dbarray($result)) {
 		if ($counter != 0 && ($counter % $columns == 0)) echo "</tr>\n<tr>\n";
 		echo "<td align='center' width='25%' class='tbl'><strong>".$data['news_cat_name']."</strong><br /><br />\n";
-		echo "<img src='".get_image("nc_".$data['news_cat_name'])."' alt='".$data['news_cat_name']."' /><br /><br />\n";
+		echo "<img src='".get_image("nc_".$data['news_cat_name'])."' alt='".$data['news_cat_name']."' class='news-category' /><br /><br />\n";
 		echo "<span class='small'><a href='".FUSION_SELF.$aidlink."&amp;action=edit&amp;cat_id=".$data['news_cat_id']."'>".$locale['433']."</a> -\n";
 		echo "<a href='".FUSION_SELF.$aidlink."&amp;action=delete&amp;cat_id=".$data['news_cat_id']."' onclick=\"return confirm('".$locale['450']."');\">".$locale['434']."</a></span></td>\n";
 		$counter++;

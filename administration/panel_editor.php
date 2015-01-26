@@ -19,6 +19,11 @@
 require_once "../maincore.php";
 
 if (!checkrights("P") || !defined("iAUTH") || !isset($_GET['aid']) || $_GET['aid'] != iAUTH) { redirect("../index.php"); }
+if (!isset($_GET['panel_side']) || !isNum($_GET['panel_side']) || $_GET['panel_side'] > 4) {
+	$panel_side = 1;
+} else {
+	$panel_side = $_GET['panel_side'];
+}
 
 require_once THEMES."templates/admin_header.php";
 include LOCALE.LOCALESET."admin/panels.php";
@@ -39,14 +44,13 @@ if (isset($_POST['save'])) {
 	if ($panel_name == "") $error .= $locale['470']."<br />";
 	if ($_POST['panel_filename'] == "none") {
 		$panel_filename = "";
-		$panel_content = (isset($_POST['panel_content']) ? addslash($_POST['panel_content']) : "openside(\"name\");\n"."  echo \"content\";\n"."closeside();");
+		$panel_content = (isset($_POST['panel_content']) ? addslash($_POST['panel_content']) : (($panel_side == 1 || $panel_side == 4) ? "openside(\"name\");\n"."echo \"Content\";\n"."closeside();" : "opentable(\"name\");\n"."echo \"Content\";\n"."closetable();"));
 		$panel_type = "php";
 	} else {
 		$panel_filename = stripinput($_POST['panel_filename']);
 		$panel_content = "";
 		$panel_type = "file";
 	}
-	$panel_side = isnum($_POST['panel_side']) ? $_POST['panel_side'] : "1";
 	$panel_access = isnum($_POST['panel_access']) ? $_POST['panel_access'] : "0";
 	if ($panel_side == "1" || $panel_side == "4") {
 		$panel_display = "0";
@@ -137,10 +141,9 @@ if (isset($_POST['save'])) {
 		$include_check = $_POST['panel_restriction'] == "0" ? " checked='checked'" : "";
 		$panel_filename = $_POST['panel_filename'];
 		$panel_content = isset($_POST['panel_content']) ? stripslash($_POST['panel_content']) : "";
-		$panel_side = $_POST['panel_side'];
 		$panel_access = $_POST['panel_access'];
 		$panelon = isset($_POST['panel_display']) ? " checked='checked'" : "";
-		$panelopts = $_POST['panel_side'] == "1" || $_POST['panel_side'] == "4" ? " style='display:none'" : " style='display:block'";
+		$panelopts = $panel_side == "1" || $panel_side == "4" ? " style='display:none'" : " style='display:block'";
 		$panel_type = $panel_filename == "none" ? "php" : "file";
 		if (check_admin_pass(isset($_POST['admin_password']) ? stripinput($_POST['admin_password']) : "")) {
 			opentable($panel_name);
@@ -181,7 +184,7 @@ if (isset($_POST['save'])) {
 		}
 	}
 	if (isset($_GET['panel_id']) && isnum($_GET['panel_id'])) {
-		$action = FUSION_SELF.$aidlink."&amp;panel_id=".$_GET['panel_id'];
+		$action = FUSION_SELF.$aidlink."&amp;panel_id=".$_GET['panel_id']."&amp;panel_side=".$panel_side;
 		opentable($locale['450']);
 	} else {
 		if (!isset($_POST['preview'])) {
@@ -190,14 +193,13 @@ if (isset($_POST['save'])) {
 			$exclude_check = " checked='checked'";
 			$include_check = "";
 			$panel_filename = "";
-			$panel_content = "openside(\"name\");\n"."  echo \"content\";\n"."closeside();";
+			$panel_content = (($panel_side == 1 || $panel_side == 4) ? "openside(\"name\");\n"."echo \"Content\";\n"."closeside();" : "opentable(\"name\");\n"."echo \"Content\";\n"."closetable();");
 			$panel_type = "";
-			$panel_side = "";
 			$panel_access = "";
 			$panelon = "";
-			$panelopts = " style='display:none'";
+			$panelopts = $panel_side == "1" || $panel_side == "4" ? " style='display:none'" : " style='display:block'";
 		}
-		$action = FUSION_SELF.$aidlink;
+		$action = FUSION_SELF.$aidlink."&amp;panel_side=".$panel_side;
 		opentable($locale['451']);
 	}
 	$user_groups = getusergroups(); $access_opts = "";
@@ -215,7 +217,7 @@ if (isset($_POST['save'])) {
 			echo "<tr>\n<td class='tbl'>".$locale['453']."</td>\n";
 			echo "<td colspan='2' class='tbl'><select name='panel_filename' class='textbox' style='width:200px;'>\n";
 			for ($i=0;$i < count($panel_list);$i++) {
-				echo "<option".($panel_filename == $panel_list[$i] ? " selected='selected'" : "").">".$panel_list[$i]."</option>\n";
+				echo "<option".($panel_filename == $panel_list[$i] ? " selected='selected'" : "").">".stripinput($panel_list[$i])."</option>\n";
 			}
 			echo "</select></td>\n</tr>\n";
 		}
@@ -223,7 +225,7 @@ if (isset($_POST['save'])) {
 		echo "<tr>\n<td class='tbl'>".$locale['453']."</td>\n";
 		echo "<td colspan='2' class='tbl'><select name='panel_filename' class='textbox' style='width:200px;'>\n";
 		for ($i=0;$i < count($panel_list);$i++) {
-			echo "<option".($panel_filename == $panel_list[$i] ? " selected='selected'" : "").">".$panel_list[$i]."</option>\n";
+			echo "<option".($panel_filename == $panel_list[$i] ? " selected='selected'" : "").">".stripinput($panel_list[$i])."</option>\n";
 		}
 		echo "</select>&nbsp;&nbsp;<span class='small2'>".$locale['454']."</span></td>\n</tr>\n";
 	}
@@ -252,15 +254,6 @@ if (isset($_POST['save'])) {
 		echo "<td colspan='2' class='tbl'><input type='password' name='admin_password' value='".(isset($_POST['admin_password']) ? stripinput($_POST['admin_password']) : "")."' class='textbox' style='width:150px;' autocomplete='off' /></td>\n";
 		echo "</tr>\n";
 	}
-	if (!isset($_GET['panel_id']) || !isnum($_GET['panel_id'])) {
-		echo "<tr>\n<td class='tbl'>".$locale['457']."</td>\n";
-		echo "<td colspan='2' class='tbl'><select name='panel_side' class='textbox' style='width:150px;' onchange=\"showopts(this.options[this.selectedIndex].value);\">\n";
-		echo "<option value='1'".($panel_side == "1" ? " selected='selected'" : "").">".$locale['420']."</option>\n";
-		echo "<option value='2'".($panel_side == "2" ? " selected='selected'" : "").">".$locale['421']."</option>\n";
-		echo "<option value='3'".($panel_side == "3" ? " selected='selected'" : "").">".$locale['425']."</option>\n";
-		echo "<option value='4'".($panel_side == "4" ? " selected='selected'" : "").">".$locale['422']."</option>\n";
-		echo "</select></td>\n</tr>\n";
-	}
 	echo "<tr>\n<td class='tbl'>".$locale['458']."</td>\n";
 	echo "<td colspan='2' class='tbl'><select name='panel_access' class='textbox' style='width:150px;'>\n".$access_opts."</select></td>\n";
 	echo "</tr>\n<tr>\n";
@@ -271,26 +264,12 @@ if (isset($_POST['save'])) {
 		if ($panel_type == "php") {
 			echo "<input type='hidden' name='panel_filename' value='none' />\n";
 		}
-		echo "<input type='hidden' name='panel_side' value='".$panel_side."' />\n";
 	}
 	echo "<input type='submit' name='preview' value='".$locale['460']."' class='button' />\n";
 	echo "<input type='submit' name='save' value='".$locale['461']."' class='button' /></td>\n";
 	echo "</tr>\n</table>\n</form>\n";
 	closetable();
 }
-
-echo "<script type='text/javascript'>
-	function showopts(panelside) {
-		var panelopts = document.getElementById('panelopts');
-		var paneldisplay = document.getElementById('panel_display');
-		if (panelside == 1 || panelside == 4) {
-			panelopts.style.display = 'none';
-			paneldisplay.checked = false;
-		} else {
-			panelopts.style.display = 'block';
-		}
-	}
-</script>\n";
 
 require_once THEMES."templates/footer.php";
 ?>

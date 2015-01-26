@@ -25,7 +25,7 @@ $locale['u061'] = "Tilføj til gruppe";
 $locale['u062'] = "Brugerens avatar";
 $locale['u063'] = "Brugerniveau";
 $locale['u064'] = "Mail";
-$locale['u065'] = "Ingen besøg.";
+
 $locale['u066'] = "Oprettelsesdato";
 $locale['u067'] = "Seneste besøg";
 $locale['u068'] = "Brugernavn";
@@ -81,11 +81,14 @@ $locale['u143a'] = " må ikke være tom.";
 $locale['u144'] = "Nyt admin. kodeord";
 $locale['u145'] = "Bekræft kodeord";
 $locale['u146'] = " kan ikke være identisk med det aktuelle ";
-$locale['u147'] = "Et kodeord skal have en længde på mellem 8 og 64 karakterer.<br />Tilladte karakterer er a-z, 0-9 od @!#$%&\/()=-_?+*.,:;";
+$locale['u147'] = "Kodeordet skal have en længde på mellem 8 og 64 karakterer.
+Tilladte symboler og karakterer er a-z, 0-9 og @!#$%&\/()=-_?+*.,:;";
 $locale['u148'] = "De to nye kodeord er ikke identiske.";
 $locale['u148a'] = "De to administrative kodeord er ikke identiske.";
 $locale['u149'] = "Der blev ikke angivet et nyt kodeord eller også var kodeord forkert.";
 $locale['u149a'] = "Dit administrative kodeord blev ikke angivet eller var forkert.";
+$locale['u149b'] = "Dit aktuelle kodeord blev ikke opgivet eller er forkert.
+Du kan ikke ændre dit administrative kodeord uden at angive det gældende kodeord korrekt.";
 
 // Email actiation
 $locale['u150'] = "Din tilmelding er næsten færdig. Du vil modtage en mail med dine pålogningsoplysninger sammen med et link, du skal bruge til at verificere din brugerkonto.";
@@ -98,7 +101,7 @@ Aktiver din konto ved at klikke på dette link: ACTIVATION_LINK\n\n
 Venlig hilsen
 ".$settings['sitename'];
 $locale['u153'] = "Aktiveringsmail kunne ikke afsendes.";
-$locale['u154'] = "Kontakt venligst <a href='mailto:".$settings['siteemail']."'>Sidens administrator</a>.";
+$locale['u154'] = "Kontakt venligst sidens administrator.";
 $locale['u155'] = "Aktiver din konto";
 $locale['u156'] = "Du skal angive dit aktuelle kodeord for at ændre din mail adresse.";
 
@@ -132,7 +135,7 @@ $locale['u187'] = "Slet";
 $locale['u190'] = "Sikkerhedskode";
 $locale['u191'] = "Indskriv sikkerhedskode";
 $locale['u192'] = "Tilmeldingsbetingelser";
-$locale['u193'] = "Jeg har læst <a href='".BASEDIR."articles.php?article_id=3' target='_blank'>tilmeldingsbetingelserne</a> og er indforstået med dem.";
+$locale['u193'] = "Jeg har læst <a href='".BASEDIR."print.php?type=T' target='_blank'>tilmeldingsbetingelserne</a> og er indforstået med dem.";
 $locale['u194'] = "Forkert sikkerhedskode.";
 $locale['u195'] = "Der skal indskrives en sikkerhedskode.";
 

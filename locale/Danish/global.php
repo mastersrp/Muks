@@ -9,11 +9,10 @@ Web: http://www.php-fusion.dk
 // Locale Settings
 setlocale(LC_TIME, "da","DA"); // Linux Server (Windows may differ)
 $locale['charset'] = "iso-8859-1";
-$locale['mysql_charset'] = "latin1";
-$locale['mysql_collate'] = "latin1_swedish_ci";
 $locale['xml_lang'] = "da";
 $locale['tinymce'] = "da";
 $locale['phpmailer'] = "da";
+$locale['recaptcha'] = "da";
 
 // Full & Short Months
 $locale['months'] = "&nbsp|Januar|Februar|Marts|April|Maj|Juni|Juli|August|September|Oktober|November|December";
@@ -23,7 +22,7 @@ $locale['shortmonths'] = "&nbsp|Jan|Feb|Mar|Apr|Maj|Jun|Jul|Aug|Sep|Okt|Nov|Dec"
 $locale['user0'] = "Gæst";
 $locale['user1'] = "Bruger";
 $locale['user2'] = "Administrator";
-$locale['user3'] = "Administrator";
+$locale['user3'] = "Super Administrator";
 $locale['user_na'] = "N/A";
 $locale['user_anonymous'] = "Anonym Bruger";
 // Standard User Status
@@ -37,7 +36,7 @@ $locale['status6'] = "Anonym";
 $locale['status7'] = "Deaktiveret";
 $locale['status8'] = "Inaktiv";
 // Forum Moderator Level(s)
-$locale['userf1'] = "Moderator";
+$locale['userf1'] = "Ordstyrer";
 // Navigation
 $locale['global_001'] = "Navigation";
 $locale['global_002'] = "Der er ikke oprettet links\n";
@@ -66,7 +65,7 @@ $locale['global_033'] = "Der er ikke oprettet downloads";
 // Welcome panel
 $locale['global_035'] = "Velkommen";
 // Latest Active Forum Threads panel
-$locale['global_040'] = "Nyeste forumsvar";
+$locale['global_040'] = "Seneste forumsvar";
 $locale['global_041'] = "Mine nyeste emner";
 $locale['global_042'] = "Mine nyeste indlæg";
 $locale['global_043'] = "Nye indlæg";
@@ -93,7 +92,7 @@ $locale['global_071'] = "d. ";
 $locale['global_072'] = "Læs mere";
 $locale['global_073'] = " Kommentarer";
 $locale['global_073b'] = " Kommentar";
-$locale['global_074'] = " Visninger";
+$locale['global_074'] = " Fremvisninger";
 $locale['global_075'] = "Udskriv";
 $locale['global_076'] = "Rediger";
 $locale['global_077'] = "Nyheder";
@@ -111,14 +110,14 @@ $locale['global_101'] = "Brugernavn";
 $locale['global_102'] = "Kodeord";
 $locale['global_103'] = "Husk mig";
 $locale['global_104'] = "Log ind";
-$locale['global_105'] = "Ikke oprettet?<br /><a href='".BASEDIR."register.php' class='side'>Klik her</a>.";
-$locale['global_106'] = "Glemt kodeord?<br /><a href='".BASEDIR."lostpassword.php' class='side'>Klik her</a>.";
+$locale['global_105'] = "Er du endnu ikke registreret bruger?<br /><a href='".BASEDIR."register.php' class='side'>Klik her</a> for at oprette dig.";
+$locale['global_106'] = "Har du glemt dit kodeord?<br />Bed om et nyt <a href='".BASEDIR."lostpassword.php' class='side'>ved at klikke her</a>.";
 $locale['global_107'] = "Tilmelding";
 $locale['global_108'] = "Glemt kodeord";
 // Member User Menu
 $locale['global_120'] = "Rediger profil";
 $locale['global_121'] = "Beskeder";
-$locale['global_122'] = "Medlemmer";
+$locale['global_122'] = "Brugerliste";
 $locale['global_123'] = "Administration";
 $locale['global_124'] = "Log ud";
 $locale['global_125'] = "Der er %u <br />";
@@ -242,5 +241,10 @@ $locale['global_465'] = "TB";
 $locale['global_500'] = "Vi sender dig videre til %s, vent venligst. Hvis du ikke bliver sendt videre, så klik her.";
 
 // Captcha Locales
+// Captcha Locales
 $locale['global_600'] = "Sikkerhedskode";
+$locale['recaptcha'] = "da";
+
+//Miscellaneous
+$locale['global_900'] = "Ude af stand til at konvertere HEX til DEC";
 ?>

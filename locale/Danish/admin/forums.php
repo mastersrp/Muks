@@ -25,7 +25,7 @@ $locale['513'] = "Der er indlæg knyttet til den";
 $locale['514'] = "Debatten er slettet";
 $locale['515'] = "Listen over ordstyrere er opdateret";
 $locale['516'] = "Angiv et kategorinavn.";
-$locale['517'] = "Angiv et unikt navn for debatten.";
+$locale['517'] = "Angiv venligst et unikt navn for debatten.";
 // Add/Edit Forum Form
 $locale['520'] = "Debattens overskrift:";
 $locale['521'] = "Beskrivelse:";

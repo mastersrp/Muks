@@ -98,6 +98,16 @@ if (iADMIN  && checkrights("ERRO") && count($_errorHandler) > 0) {
 echo "</body>\n</html>\n";
 
 $output = ob_get_contents();
+
+if (stripos($output,'<form') > 0)
+{
+	$output = preg_replace('/onsubmit\=\'return ([vV])alidate([a-zA-Z]+)\(this\)\;*\'/','onsubmit=\'nrf("[FORM_ID]",""); return $1alidate$2(this);\'¤',$output);
+	$output = preg_replace('/<form([^¤]*?)>/','<form$1 onsubmit="nrf(\'[FORM_ID]\',\'\'); return true;">',$output);
+	$output = str_replace('\'¤','\'',$output);
+	$output = preg_replace('/\<form(.*?action\=[\"\'](.*?)[\"\'].*?)\[FORM\_ID\]/e',"stripslashes('<form$1'.formidz('$2'))",$output);
+}
+
+
 if (ob_get_length() !== FALSE){
 	ob_end_clean();
 }

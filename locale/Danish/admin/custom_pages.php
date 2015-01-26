@@ -20,6 +20,7 @@ $locale['427'] = "Slå kommentarer til";
 $locale['428'] = "Slå vurdering til";
 $locale['429'] = "Se siden";
 $locale['430'] = "Gem siden";
+$locale['431'] = "Sidemellemrum";
 // Popup errors / warning messages
 $locale['450'] = "Skal denne side slettes?";
 $locale['451'] = "Du skal angive en overskrift";

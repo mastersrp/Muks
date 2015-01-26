@@ -190,7 +190,7 @@ if (dbrows($result)) {
 		echo "<div class='shoutbox'>".sbwrap(parseubb(parsesmileys($data['shout_message']), "b|i|u|url|color"))."</div>\n";
 		if ((iADMIN && checkrights("S")) || (iMEMBER && $data['shout_name'] == $userdata['user_id'] && isset($data['user_name']))) {
 			echo "[<a href='".$link.$sep."s_action=edit&amp;shout_id=".$data['shout_id']."#edit_shout"."' class='side'>".$locale['SB_edit']."</a>]\n";
-			echo "[<a href='".$link.$sep."s_action=delete&amp;shout_id=".$data['shout_id']."' class='side'>".$locale['SB_delete']."</a>]<br />\n";
+			echo "[<a href='".$link.$sep."s_action=delete&amp;shout_id=".$data['shout_id']."' onclick=\"return confirm('".$locale['SB_warning_shout']."');\" class='side'>".$locale['SB_delete']."</a>]<br />\n";
 		}
 		$i++;
 		if ($i != $numrows) { echo "<br />\n"; }

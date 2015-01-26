@@ -36,7 +36,7 @@ $result = dbquery(
 );
 if (dbrows($result)) {
 	$fdata = dbarray($result);
-	if ((!checkgroup($fdata['forum_access']) && !checkgroup($fdata['forum_moderators'])) || !$fdata['forum_cat']) { redirect("index.php"); }
+	if (!checkgroup($fdata['forum_access']) || !$fdata['forum_cat']) { redirect("index.php"); }
 } else {
 	redirect("index.php");
 }
@@ -84,7 +84,7 @@ if (isset($_POST['delete_threads']) && iMOD) {
 		}
 	}
 	if ($thread_ids) {
-		$result = dbquery("SELECT post_author, COUNT(post_id) as num_posts FROM ".DB_POSTS.$is_chat." WHERE thread_id IN (".$thread_ids.") GROUP BY post_author");
+		$result = dbquery("SELECT post_author, COUNT(post_id) as num_posts FROM ".DB_POSTS." WHERE thread_id IN (".$thread_ids.") AND post_alias > -1 GROUP BY post_author");
 		if (dbrows($result)) {
 			while ($pdata = dbarray($result)) {
 				$result2 = dbquery("UPDATE ".DB_USERS." SET user_posts=user_posts-".$pdata['num_posts']." WHERE user_id='".$pdata['post_author']."'");
@@ -98,16 +98,16 @@ if (isset($_POST['delete_threads']) && iMOD) {
 				}
 			}
 		}
-		$result = dbquery("DELETE FROM ".DB_POSTS.$is_chat." WHERE thread_id IN (".$thread_ids.") AND forum_id='".$_GET['forum_id']."'");
+		$result = dbquery("DELETE FROM ".DB_POSTS." WHERE thread_id IN (".$thread_ids.") AND forum_id='".$_GET['forum_id']."'");
 		$deleted_posts = mysql_affected_rows();
-		$result = dbquery("DELETE FROM ".DB_THREADS.$is_chat." WHERE thread_id IN (".$thread_ids.") AND forum_id='".$_GET['forum_id']."'");
+		$result = dbquery("DELETE FROM ".DB_THREADS." WHERE thread_id IN (".$thread_ids.") AND forum_id='".$_GET['forum_id']."'");
 		$deleted_threads = mysql_affected_rows();
 		$result = dbquery("DELETE FROM ".DB_THREAD_NOTIFY." WHERE thread_id IN (".$thread_ids.")");
 		$result = dbquery("DELETE FROM ".DB_FORUM_ATTACHMENTS." WHERE thread_id IN (".$thread_ids.")");
 		$result = dbquery("DELETE FROM ".DB_FORUM_POLL_OPTIONS." WHERE thread_id IN (".$thread_ids.")");
 		$result = dbquery("DELETE FROM ".DB_FORUM_POLL_VOTERS." WHERE thread_id IN (".$thread_ids.")");
 		$result = dbquery("DELETE FROM ".DB_FORUM_POLLS." WHERE thread_id IN (".$thread_ids.")");
-		$result = dbquery("SELECT post_datestamp, post_author, post_alias FROM ".DB_POSTS.$is_chat." WHERE forum_id='".$_GET['forum_id']."' ORDER BY post_datestamp DESC LIMIT 1");
+		$result = dbquery("SELECT post_datestamp, post_author, post_alias FROM ".DB_POSTS." WHERE forum_id='".$_GET['forum_id']."' ORDER BY post_datestamp DESC LIMIT 1");
 		if (dbrows($result)) {
 			$ldata = dbarray($result);
 			$forum_lastpost = "forum_lastpost='".$ldata['post_datestamp']."', forum_lastuser='".$ldata['post_author']."', forum_lastpost_alias='".$ldata['post_alias']."'";
@@ -115,8 +115,10 @@ if (isset($_POST['delete_threads']) && iMOD) {
 			$forum_lastpost = "forum_lastpost='0', forum_lastuser='0', forum_lastpost_alias='-1'";
 		}
 		$result = dbquery("UPDATE ".DB_FORUMS." SET ".$forum_lastpost.", forum_postcount=forum_postcount-".$deleted_posts.", forum_threadcount=forum_threadcount-".$deleted_threads." WHERE forum_id='".$_GET['forum_id']."'");
+
+
 	}
-	$rows_left = dbcount("(thread_id)", DB_THREADS.$is_chat, "forum_id='".$_GET['forum_id']."'") - 3;
+	$rows_left = dbcount("(thread_id)", DB_THREADS, "forum_id='".$_GET['forum_id']."'") - 3;
 	if ($rows_left <= $_GET['rowstart'] && $_GET['rowstart'] > 0) {
 		$_GET['rowstart'] = ((ceil($rows_left / $threads_per_page)-1) * $threads_per_page);
 	}
@@ -126,7 +128,7 @@ if (isset($_POST['delete_threads']) && iMOD) {
 opentable($locale['450']);
 echo "<!--pre_forum--><div class='tbl2 forum_breadcrumbs'><a href='index.php'>".$settings['sitename']."</a> &raquo; ".$caption."</div>\n";
 
-$rows = dbcount("(thread_id)", DB_THREADS.$is_chat, "forum_id='".$_GET['forum_id']."' AND thread_hidden='0'");
+$rows = dbcount("(thread_id)", DB_THREADS, "forum_id='".$_GET['forum_id']."' AND thread_hidden='0'");
 
 $post_info = "";
 if ($rows > $threads_per_page || (iMEMBER && $can_post)) {
@@ -149,9 +151,8 @@ echo $post_info;
 if (iMOD) { echo "<form name='mod_form' method='post' action='".FUSION_SELF."?forum_id=".$_GET['forum_id']."&amp;rowstart=".$_GET['rowstart']."'>\n"; }
 echo "<table cellpadding='0' cellspacing='1' width='100%' class='tbl-border forum_table'>\n<tr>\n";
 echo "<td class='tbl2 forum-caption' width='1%' style='white-space:nowrap'>&nbsp;</td>\n";
-echo "<td class='tbl2 forum-caption'>".$locale['451']."</td>\n";
-echo "<td class='tbl2 forum-caption' width='1%' style='white-space:nowrap'>".$locale['452']."</td>\n";
-// echo "<td class='tbl2 forum-caption' width='1%' style='white-space:nowrap' align='center' >".$locale['453']."</td>\n";
+echo "<td class='tbl2 forum-caption' width='1%' style='white-space:nowrap'>Titel</td>\n";
+echo "<td class='tbl2 forum-caption' width='1%' style='white-space:nowrap' align='center' >Forfatter</td>\n";
 echo "<td class='tbl2 forum-caption' width='1%' style='white-space:nowrap' align='center'>".$locale['454']."</td>\n";
 echo "<td class='tbl2 forum-caption' width='1%' style='white-space:nowrap'>".$locale['404']."</td>\n</tr>\n";
 
@@ -159,7 +160,7 @@ if ($rows) {
 	$result = dbquery(
 		"SELECT t.*, tu1.user_name AS user_author, tu1.user_status AS status_author, tu1.user_aliases AS aliases_author,
 		tu2.user_name AS user_lastuser, tu2.user_status AS status_lastuser, tu2.user_aliases AS aliases_lastuser
-		FROM ".DB_THREADS.$is_chat." t
+		FROM ".DB_THREADS." t		
 		LEFT JOIN ".DB_USERS." tu1 ON t.thread_author = tu1.user_id
 		LEFT JOIN ".DB_USERS." tu2 ON t.thread_lastuser = tu2.user_id
 		WHERE t.forum_id='".$_GET['forum_id']."' AND thread_hidden='0'
@@ -208,7 +209,6 @@ if ($rows) {
 		}
 		echo $threadsubject."</td>\n";
 		echo "<td width='1%' class='tbl2' style='white-space:nowrap'>".alias2($tdata['thread_firstpost_alias'], alias1($tdata['aliases_author']), $tdata['thread_author'], $tdata['user_author'], $tdata['status_author'])."</td>\n";
-//		echo "<td align='center' width='1%' class='tbl1' style='white-space:nowrap'>".$tdata['thread_views']."</td>\n";
 		echo "<td align='center' width='1%' class='tbl1' style='white-space:nowrap'>".($tdata['thread_postcount']-1)."</td>\n";
 		echo "<td width='1%' class='tbl2' style='white-space:nowrap'>".showdate("forumdate", $tdata['thread_lastpost'])."<br />\n";
 		echo "<span class='small'>".$locale['406'].alias2($tdata['thread_lastpost_alias'], alias1($tdata['aliases_lastuser']), $tdata['thread_lastuser'], $tdata['user_lastuser'], $tdata['status_lastuser'])."</span></td>\n";
@@ -278,7 +278,7 @@ echo "<script type='text/javascript'>\n"."function jumpforum(forumid) {\n";
 echo "document.location.href='".FORUM."viewforum.php?forum_id='+forumid;\n}\n";
 echo "</script>\n";
 
-list($threadcount, $postcount) = dbarraynum(dbquery("SELECT COUNT(thread_id), SUM(thread_postcount) FROM ".DB_THREADS.$is_chat." WHERE forum_id='".$_GET['forum_id']."' AND thread_hidden='0'"));
+list($threadcount, $postcount) = dbarraynum(dbquery("SELECT COUNT(thread_id), SUM(thread_postcount) FROM ".DB_THREADS." WHERE forum_id='".$_GET['forum_id']."' AND thread_hidden='0'"));
 if(isnum($threadcount) && isnum($postcount)){
 	dbquery("UPDATE ".DB_FORUMS." SET forum_postcount='$postcount', forum_threadcount='$threadcount' WHERE forum_id='".$_GET['forum_id']."'");
 }

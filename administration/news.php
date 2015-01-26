@@ -15,6 +15,11 @@
 | copyright header is strictly prohibited without
 | written permission from the original author(s).
 +--------------------------------------------------------*/
+if (isset($message))
+{
+	unset($message);
+}
+
 require_once "../maincore.php";
 
 if (!checkrights("N") || !defined("iAUTH") || !isset($_GET['aid']) || $_GET['aid'] != iAUTH) { redirect("../index.php"); }
@@ -139,7 +144,7 @@ if (isset($_POST['save'])) {
 				$news_image_t1 = "";
 				$news_image_t2 = "";
 			}
-			$result = dbquery("UPDATE ".DB_NEWS." SET news_subject='$news_subject', news_cat='$news_cat', news_end='$news_end_date', news_image='$news_image', news_news='$body', news_extended='$body2', news_breaks='$news_breaks',".($news_start_date != 0 ? " news_datestamp='$news_start_date'," : "")." news_start='$news_start_date', news_image_t1='$news_image_t1', news_image_t2='$news_image_t2', news_visibility='$news_visibility', news_draft='$news_draft', news_sticky='$news_sticky', news_allow_comments='$news_comments', news_allow_ratings='$news_ratings' WHERE news_id='".$_POST['news_id']."'");
+			$result = dbquery("UPDATE ".DB_NEWS." SET news_subject='$news_subject', news_cat='$news_cat', news_end='$news_end_date', news_image='".addslash($news_image)."', news_news='$body', news_extended='$body2', news_breaks='$news_breaks',".($news_start_date != 0 ? " news_datestamp='$news_start_date'," : "")." news_start='$news_start_date', news_image_t1='".addslash($news_image_t1)."', news_image_t2='".addslash($news_image_t2)."', news_visibility='$news_visibility', news_draft='$news_draft', news_sticky='$news_sticky', news_allow_comments='$news_comments', news_allow_ratings='$news_ratings' WHERE news_id='".$_POST['news_id']."'");
 			redirect(FUSION_SELF.$aidlink."&status=su".($error ? "&error=$error" : ""));
 		} else {
 			redirect(FUSION_SELF.$aidlink);
@@ -233,7 +238,7 @@ if (isset($_POST['save'])) {
 	}
 
 	if ((isset($_GET['action']) && $_GET['action'] == "edit") && (isset($_POST['news_id']) && isnum($_POST['news_id'])) || (isset($_GET['news_id']) && isnum($_GET['news_id']))) {
-		$result = dbquery("SELECT news_subject, news_cat, news_news, news_extended, news_start, news_end, news_image, news_image_t1, news_image_t2, news_visibility, news_draft, news_sticky, news_breaks, news_allow_comments, news_allow_ratings FROM ".DB_NEWS." WHERE news_id='".(isset($_POST['news_id']) ? $_POST['news_id'] : $_GET['news_id'])."' LIMIT 1");
+		$result = dbquery("SELECT news_subject, news_cat, news_news, news_extended, news_start, news_end, news_image, news_image_t1, news_image_t2, news_visibility, news_draft, news_sticky, news_breaks, news_allow_comments, news_allow_ratings FROM ".DB_NEWS." WHERE news_id='".(isset($_POST['news_id']) && isnum($_POST['news_id']) ? $_POST['news_id'] : intval($_GET['news_id']))."' LIMIT 1");
 		if (dbrows($result)) {
 			$data = dbarray($result);
 			$news_subject = $data['news_subject'];
@@ -323,6 +328,7 @@ if (isset($_POST['save'])) {
 	echo "</tr>\n";
 	if ($settings['tinymce_enabled'] != 1) {
 		echo "<tr>\n<td class='tbl'></td>\n<td class='tbl'>\n";
+		echo "<input type='button' value='".$locale['441']."' class='button' onclick=\"insertText('body2', '&lt;!--PAGEBREAK--&gt;');\" />\n";
 		echo display_html("inputform", "body2", true, true, true, IMAGES_N);
 		echo "</td>\n</tr>\n";
 	}

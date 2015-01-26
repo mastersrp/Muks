@@ -35,16 +35,9 @@ if (dbrows($cp_result)) {
 		eval("?>".stripslashes($cp_data['page_content'])."<?php ");
 		$custompage = ob_get_contents();
 		ob_end_clean();
-		if ($settings['tinymce_enabled']) {
-			$custompage = explode("<!-- pagebreak -->", $custompage);
-			$pagecount = count($custompage);
-			echo $custompage[$_GET['rowstart']];
-			if ($pagecount > 1) {
-				echo "<div align='center' style='margin-top:5px;'>\n".makepagenav($_GET['rowstart'], 1, $pagecount, 3, FUSION_SELF."?page_id=".$_GET['page_id']."&amp;")."\n</div>\n";
-			}
-		} else {
-			echo $custompage;
-		}
+		$custompage = preg_split("/<!?--\s*pagebreak\s*-->/i", $custompage);
+		$pagecount = count($custompage);
+		echo $custompage[$_GET['rowstart']];
 	} else {
 		echo "<div class='admin-message' style='text-align:center'><br /><img style='border:0px; vertical-align:middle;' src ='".BASEDIR."images/warn.png' alt=''/><br /> ".$locale['400']."<br /><a href='index.php' onclick='javascript:history.back();return false;'>".$locale['403']."</a>\n<br /><br /></div>\n";
 	}
@@ -55,6 +48,9 @@ if (dbrows($cp_result)) {
 	echo "<div style='text-align:center'><br />\n".$locale['402']."\n<br /><br /></div>\n";
 }
 closetable();
+if (isset($pagecount) && $pagecount > 1) {
+    echo "<div align='center' style='margin-top:5px;'>\n".makepagenav($_GET['rowstart'], 1, $pagecount, 3, FUSION_SELF."?page_id=".$_GET['page_id']."&amp;")."\n</div>\n";
+}
 echo "<!--custompages-after-content-->\n";
 if (dbrows($cp_result) && checkgroup($cp_data['page_access'])) {
 	if ($cp_data['page_allow_comments']) { showcomments("C", DB_CUSTOM_PAGES, "page_id", $_GET['page_id'],FUSION_SELF."?page_id=".$_GET['page_id']); }

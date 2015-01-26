@@ -29,7 +29,7 @@ if ($profile_method == "input") {
 		echo "<td class='tbl".$this->getErrorClass("user_theme")."'><label for='user_theme_input'>".$locale['uf_theme'].$required."</label></td>\n";
 		echo "<td class='tbl".$this->getErrorClass("user_theme")."'>";
 		echo "<select id='user_theme_input' name='user_theme' class='textbox' style='width:100px;'>\n".makefileopts($theme_files, $user_theme)."</select>";
-		echo "<br />Bemærk at ændringerne først tager effekt, når du går videre fra den følgende side!<br />Default (standart temaet for siden) refererer til et af de andre temaer, hvilket betyder at default og en af de andre temaer er ens.</td>\n</tr>\n";
+		echo "</td>\n</tr>\n";
 	}
 
 	if ($required) { $this->setRequiredJavaScript("user_theme", $locale['uf_theme_error']); }
@@ -44,6 +44,7 @@ if ($profile_method == "input") {
 		if (isset($_POST['user_theme']) && $_POST['user_theme'] != "") {
 			// Set update or insert user data
 			$this->_setDBValue("user_theme", stripinput(trim($_POST['user_theme'])));
+			if (stripinput(trim($_POST['user_theme'])) != $this->userData['user_theme']) $this->_themeChanged = true;
 		} else {
 			$this->_setError("user_theme", $locale['uf_theme_error'], true);	
 		}

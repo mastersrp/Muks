@@ -17,16 +17,30 @@
 +--------------------------------------------------------*/
 if (!defined("IN_FUSION")) { die("Access Denied"); }
 
-openside($locale['global_130']);
-if (isset($_POST['cast_vote']) && (isset($_POST['poll_id']) && isnum($_POST['poll_id']))) {
-	$result = dbcount("(poll_id)", DB_POLL_VOTES, "vote_user='".$userdata['user_id']."' AND poll_id='".$_POST['poll_id']."'");
-	if (empty($result)) {
-		if (isset($_POST['voteoption']) && isnum($_POST['voteoption'])) {
+if (iMEMBER && isset($_POST['cast_vote']) && 
+	(isset($_POST['poll_id']) && isnum($_POST['poll_id'])) && 
+		(isset($_POST['voteoption']) && isnum($_POST['voteoption']))) { // bug #1010
+	$result = dbquery("SELECT v.vote_user, v.vote_id, p.poll_opt_0, p.poll_opt_1, p.poll_opt_2, p.poll_opt_3, p.poll_opt_4, p.poll_opt_5, p.poll_opt_6, p.poll_opt_7, p.poll_opt_8, p.poll_opt_9, p.poll_started, p.poll_ended
+		FROM ".DB_POLLS." p 
+		LEFT JOIN ".DB_POLL_VOTES." v ON p.poll_id = v.poll_id
+		WHERE p.poll_id='".$_POST['poll_id']."'
+		ORDER BY v.vote_id");
+	if (dbrows($result)) {
+		$voters = array();
+		while($pdata = dbarray($result)) {
+			$voters[] = $pdata['vote_user'];
+			$data     = $pdata;
+		}
+		if (($data['poll_started'] < time() && ($data['poll_ended'] == 0)) && 
+			(empty($voters) || !in_array($userdata['user_id'], $voters)) && 
+				!empty($data["poll_opt_".$_POST['voteoption']])) { // bug #1010
 			$result = dbquery("INSERT INTO ".DB_POLL_VOTES." (vote_user, vote_opt, poll_id) VALUES ('".$userdata['user_id']."', '".$_POST['voteoption']."', '".$_POST['poll_id']."')");
 		}
-		redirect(FUSION_SELF.(FUSION_QUERY ? "?".FUSION_QUERY : ""));
 	}
+	redirect(FUSION_SELF.(FUSION_QUERY ? "?".FUSION_QUERY : ""));
 }
+
+openside($locale['global_130']);
 $result = dbquery("SELECT poll_id, poll_title, poll_opt_0, poll_opt_1, poll_opt_2, poll_opt_3, poll_opt_4, poll_opt_5, poll_opt_6, poll_opt_7, poll_opt_8, poll_opt_9, poll_started, poll_ended FROM ".DB_POLLS." ORDER BY poll_started DESC LIMIT 1");
 if (dbrows($result)) {
 	$data = dbarray($result);

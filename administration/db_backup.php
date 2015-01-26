@@ -173,7 +173,7 @@ if (isset($_POST['btn_do_restore'])) {
 				}
 			}
 		}
-		@unlink(ADMIN."/db_backups/temp.txt");
+		@unlink(ADMIN."db_backups/temp.txt");
 		redirect(FUSION_SELF.$aidlink);
 	} else {
 		opentable($locale['400']);

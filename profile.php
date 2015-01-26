@@ -48,17 +48,18 @@ if (isset($_GET['lookup']) && isnum($_GET['lookup'])) {
 		}
 	}
 
-	opentable($locale['u104']." ".$user_data['user_name']);
+	opentable($locale['u104']." ".$user_data['user_name'].($userdata['user_id'] == $_GET['lookup'] ? ' | <a href="/edit_profile.php" style="text-decoration: underline; color: inherit;">Rediger profil</a>' : ''));
 	$userFields 					= new UserFields();
 	$userFields->userData 			= $user_data;
 	$userFields->showAdminOptions 	= true;
 	$userFields->displayOutput();
+	echo '<br><b><a href="/report.php?action=new&amp;user_id='.$user_data['user_id'].'">Anmeld bruger</a></b>';
 } elseif (isset($_GET['group_id']) && isnum($_GET['group_id'])) {
 	$result = dbquery("SELECT group_id, group_name FROM ".DB_USER_GROUPS." WHERE group_id='".$_GET['group_id']."'");
 	if (dbrows($result)) {
 		$data = dbarray($result);
 		$result = dbquery(
-			"SELECT user_id, user_name, user_level, user_status
+			"SELECT user_id, user_name, user_level, user_status, user_title
 			FROM ".DB_USERS."
 			WHERE user_groups REGEXP('^\\\.{$_GET['group_id']}$|\\\.{$_GET['group_id']}\\\.|\\\.{$_GET['group_id']}$')
 			ORDER BY user_level DESC, user_name"
@@ -76,7 +77,7 @@ if (isset($_GET['lookup']) && isnum($_GET['lookup'])) {
 			while ($data = dbarray($result)) {
 				$cell_color = ($i % 2 == 0 ? "tbl1" : "tbl2"); $i++;
 				echo "<tr>\n<td class='".$cell_color."'>\n".profile_link($data['user_id'], $data['user_name'], $data['user_status'])."</td>\n";
-				echo "<td align='center' width='1%' class='$cell_color' style='white-space:nowrap'>".getuserlevel($data['user_level'])."</td>\n</tr>";
+				echo "<td align='center' width='1%' class='$cell_color' style='white-space:nowrap'>".$data['user_title']."</td>\n</tr>";
 			}
 		}
 		echo "</table>\n";

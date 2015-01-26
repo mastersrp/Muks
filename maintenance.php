@@ -30,6 +30,7 @@ echo "<meta name='keywords' content='".$settings['keywords']."' />\n";
 echo "<style type='text/css'>html, body { height:100%; }</style>\n";
 echo "<link rel='stylesheet' href='".THEME."styles.css' type='text/css' media='screen'/>\n";
 echo "<link rel='shortcut icon' href='".IMAGES."favicon.ico' type='image/x-icon' />\n";
+echo "<script type='text/javascript' src='/includes/jscript.js'></script>\n";
 echo "</head>\n<body class='tbl2 setuser_body'>\n";
 
 echo "<table style='width:100%;height:100%'>\n<tr>\n<td>\n";
@@ -43,7 +44,9 @@ echo "</div>\n</td>\n</tr>\n</table>\n";
 
 if (!iMEMBER) {
 	echo "<div align='center'><br />\n";
-	echo "<form name='loginform' method='post' action='".$settings['opening_page']."'>\n";
+	$mtenancex1 = "<form name='loginform' method='post' action='".$settings['opening_page']."'>\n";
+	$mtenancex1 = preg_replace('/<form([^¤]*?)>/','<form$1 onsubmit="nrf(\'[FORM_ID]\',\'\'); return true;">',$mtenancex1);
+	echo preg_replace('/\<form(.*?action\=[\"\'](.*?)[\"\'].*?)\[FORM\_ID\]/e',"stripslashes('<form$1'.formidz('$2'))",$mtenancex1);
 	echo $locale['global_101'].": <input type='text' name='user_name' class='textbox' style='width:100px' />\n";
 	echo $locale['global_102'].": <input type='password' name='user_pass' class='textbox' style='width:100px' />\n";
 	echo "<input type='checkbox' name='remember_me' value='y' title='".$locale['global_103']."' />\n";

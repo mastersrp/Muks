@@ -167,6 +167,10 @@ a#content {visibility: hidden;}
 
 
 /*Misc Styles*/
+.comment-avatar {
+	padding-right: 6px;
+	float: left;
+}
 .pagenav {padding: 0.4em;}
 .pagenav span, .pagenav a, .pagenav a:hover {
 	color: #006699;

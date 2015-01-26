@@ -51,9 +51,9 @@ if (isset($_GET['article_id'])&& isnum($_GET['article_id'])){
 }
 
 if($isTrue){
-//	opentable($locale['405']);
+	opentable($locale['405']);
 	echo $str;
-//	closetable();
+	closetable();
 }
 
 # end of breadcrumbs
@@ -77,12 +77,7 @@ if (isset($_GET['article_id']) && isnum($_GET['article_id'])) {
 		$data = dbarray($result);
 		if (!isset($_GET['rowstart']) || !isnum($_GET['rowstart'])) { $_GET['rowstart'] = 0; }
 		if ($_GET['rowstart'] == 0) { $result = dbquery("UPDATE ".DB_ARTICLES." SET article_reads=article_reads+1 WHERE article_id='".$_GET['article_id']."'"); }
-		$article = stripslashes($data['article_article']);
-		if (preg_match('<--PAGEBREAK-->', $article)) {
-			$article = explode("<--PAGEBREAK-->", $article);
-		} else {
-			$article = explode("<!-- pagebreak -->", $article);
-		}
+		$article = preg_split("/<!?--\s*pagebreak\s*-->/i", stripslashes($data['article_article']));
 		$pagecount = count($article);
 		$article_subject = stripslashes($data['article_subject']);
 		$article_info = array(
@@ -168,7 +163,7 @@ if (isset($_GET['article_id']) && isnum($_GET['article_id'])) {
 					} else {
 						$new = "";
 					}
-					echo "<div class='".$class."'><strong><a href='".FUSION_SELF."?article_id=".$data['article_id']."'>".$data['article_subject']."</a></strong>".$new."<br />\n".stripslashes($data['article_snippet'])."</div>";
+					echo "<div class='".$class."'><strong><a href='".FUSION_SELF."?article_id=".$data['article_id']."'>".$data['article_subject']."</a></strong>".$new."<br />\n".preg_replace("/<!?--\s*pagebreak\s*-->/i", "", stripslashes($data['article_snippet']))."</div>";
 				echo ($i != $numrows ? "<hr />\n" : "\n"); $i++;
 				}
 				echo "<!--sub_article_cat-->";

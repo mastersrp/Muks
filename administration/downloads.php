@@ -303,7 +303,7 @@ if (!empty($result)) {
 		opentable($locale['400']);
 	}
 
-	if (isset($_GET['status']) && !isset($message)) {
+	if (isset($_GET['status']) && $message == "") {
 		if ($_GET['status'] == "sn") {
 			$message .= $locale['410'];
 		} elseif ($_GET['status'] == "su") {

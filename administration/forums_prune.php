@@ -72,7 +72,7 @@ if ((!isset($_POST['prune_forum'])) && (isset($_GET['action']) && $_GET['action'
 		$result = dbquery("SELECT thread_lastpost, thread_lastuser, thread_lastpost_alias FROM ".DB_THREADS." WHERE forum_id='".$_GET['forum_id']."' ORDER BY thread_lastpost DESC LIMIT 0,1");
 		if (dbrows($result)) {
 			$data = dbarray($result);
-			$result = dbquery("UPDATE ".DB_FORUMS." SET forum_lastpost='".$data['thread_lastpost']."', forum_lastuser='".$data['thread_lastuser']."', forum_lastpost_alias='".$data['thread_lastpost_alias']."' WHERE forum_id='".$_GET['forum_id']."'");
+			$result = dbquery("UPDATE ".DB_FORUMS." SET forum_lastpost='".$data['thread_lastpost']."', forum_lastuser='".$data['thread_lastuser']."', forum_lastpost_alias='".$data['thread_lastuser_alias']."' WHERE forum_id='".$_GET['forum_id']."'");
 		} else {
 			$result = dbquery("UPDATE ".DB_FORUMS." SET forum_lastpost='0', forum_lastuser='0', forum_lastpost_alias='-1' WHERE forum_id='".$_GET['forum_id']."'");
 		}

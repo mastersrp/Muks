@@ -63,7 +63,7 @@ if (isset($_GET['step']) && $_GET['step'] == "renew") {
 	if (dbrows($result)) {
 		$data = dbarray($result);
 		$result = dbquery("UPDATE ".DB_POSTS." SET post_datestamp='".time()."' WHERE post_id='".$data['post_id']."'");
-		$result = dbquery("UPDATE ".DB_THREADS." SET thread_lastpost='".time()."', thread_lastpostid='".$data['post_id']."', thread_lastpost_alias = ".$data['post_alias']." WHERE thread_id='".$_GET['thread_id']."'");
+		$result = dbquery("UPDATE ".DB_THREADS." SET thread_lastpost='".time()."', thread_lastpostid='".$data['post_id']."', thread_lastuser='".$data['post_author']."', thread_lastpost_alias = ".$data['post_alias']." WHERE thread_id='".$_GET['thread_id']."'");
 		$result = dbquery("UPDATE ".DB_FORUMS." SET forum_lastpost='".time()."', forum_lastuser='".$data['post_author']."', forum_lastpost_alias = ".$data['post_alias']." WHERE forum_id='".$_GET['forum_id']."'");
 		opentable($locale['458']);
 		echo "<div style='text-align:center'><br />\n".$locale['459']."<br /><br />\n";
@@ -83,10 +83,13 @@ if (isset($_GET['step']) && $_GET['step'] == "renew") {
 		echo "<input type='submit' name='canceldelete' value='".$locale['406']."' class='button' style='width:75px'><br /><br />\n";
 		echo "</form>\n";
 	} else {
-		$result = dbquery("SELECT post_author, COUNT(post_id) as num_posts FROM ".DB_POSTS." WHERE thread_id='".$_GET['thread_id']."' GROUP BY post_author");
+		$result = dbquery("SELECT post_author, post_alias, COUNT(post_id) as num_posts FROM ".DB_POSTS." WHERE thread_id='".$_GET['thread_id']."' GROUP BY post_author");
 		if (dbrows($result)) {
 			while ($pdata = dbarray($result)) {
-				$result2 = dbquery("UPDATE ".DB_USERS." SET user_posts=user_posts-".$pdata['num_posts']." WHERE user_id='".$pdata['post_author']."'");
+				if ($pdata['post_alias'] < 0)
+				{
+					$result2 = dbquery("UPDATE ".DB_USERS." SET user_posts=user_posts-".$pdata['num_posts']." WHERE user_id='".$pdata['post_author']."'");
+				}
 			}
 		}
 
@@ -97,13 +100,7 @@ if (isset($_GET['step']) && $_GET['step'] == "renew") {
 		$del_posts = mysql_affected_rows();
 		$result = dbquery("DELETE FROM ".DB_THREADS." WHERE thread_id='".$_GET['thread_id']."'");
 		$result = dbquery("DELETE FROM ".DB_THREAD_NOTIFY." WHERE thread_id='".$_GET['thread_id']."'");
-		$result = dbquery("SELECT attach_name FROM ".DB_FORUM_ATTACHMENTS." WHERE thread_id='".$_GET['thread_id']."'");
-		if (dbrows($result) != 0) {
-			while ($attach = dbarray($result)) {
-				@unlink(FORUM."attachments/".$attach['attach_name']);
-			}
-		}
-		$result = dbquery("DELETE FROM ".DB_FORUM_ATTACHMENTS." WHERE thread_id='".$_GET['thread_id']."'");
+
 
 		if ($threads_count > 0) {
 			$result = dbquery("SELECT forum_id FROM ".DB_FORUMS." WHERE forum_id='".$_GET['forum_id']."' AND forum_lastpost='".$tdata['thread_lastpost']."' AND forum_lastuser='".$tdata['thread_lastuser']."'");
@@ -115,10 +112,10 @@ if (isset($_GET['step']) && $_GET['step'] == "renew") {
 					ORDER BY p.post_datestamp DESC LIMIT 1"
 				);
 				$pdata = dbarray($result);
-				$result = dbquery("UPDATE ".DB_FORUMS." SET forum_lastpost='".$pdata['post_datestamp']."', forum_postcount=forum_postcount-".$del_posts.", forum_threadcount=forum_threadcount-1, forum_lastuser='".$pdata['post_author']."', forum_lastpost_alias=".$pdata['post_alias']." WHERE forum_id='".$_GET['forum_id']."'");
+				$result = dbquery("UPDATE ".DB_FORUMS." SET forum_lastpost='".$pdata['post_datestamp']."', forum_postcount=forum_postcount-".$del_posts.", forum_threadcount=forum_threadcount-1, forum_lastuser='".$pdata['post_author']."', forum_lastpost_alias=".$pdata['post_alias']."  WHERE forum_id='".$_GET['forum_id']."'");
 			}
 		} else {
-			$result = dbquery("UPDATE ".DB_FORUMS." SET forum_lastpost='0', forum_postcount=0, forum_threadcount=0, forum_lastuser='0', forum_lastpost_alias=-1 WHERE forum_id='".$_GET['forum_id']."'");
+			$result = dbquery("UPDATE ".DB_FORUMS." SET forum_lastpost='0', forum_postcount=0, forum_threadcount=0, forum_lastuser='0', forum_lastpost_alias='-1' WHERE forum_id='".$_GET['forum_id']."'");
 		}
 		echo $locale['401']."<br /><br />\n";
 		echo "<a href='viewforum.php?forum_id=".$_GET['forum_id']."'>".$locale['402']."</a><br /><br />\n";
@@ -171,17 +168,17 @@ if (isset($_GET['step']) && $_GET['step'] == "renew") {
 		$result = dbquery("SELECT thread_lastpost, thread_lastuser, thread_lastpost_alias FROM ".DB_THREADS." WHERE forum_id='".$_GET['forum_id']."' AND thread_hidden='0' ORDER BY thread_lastpost DESC LIMIT 1");
 		if (dbrows($result)) {
 			$pdata2 = dbarray($result);
-			$result = dbquery("UPDATE ".DB_FORUMS." SET forum_lastpost='".$pdata2['thread_lastpost']."', forum_postcount=forum_postcount-".$post_count.", forum_threadcount=forum_threadcount-1, forum_lastuser='".$pdata2['thread_lastuser']."', forum_lastpost_alias=".$pdata2['thread_lastpost_alias']." WHERE forum_id='".$_GET['forum_id']."'");
+			$result = dbquery("UPDATE ".DB_FORUMS." SET forum_lastpost='".$pdata2['thread_lastpost']."', forum_postcount=forum_postcount-".$post_count.", forum_threadcount=forum_threadcount-1, forum_lastuser='".$pdata2['thread_lastuser']."', forum_lastpost_alias='".$pdata2['thread_lastpost_alias']."' WHERE forum_id='".$_GET['forum_id']."'");
 		} else {
-			$result = dbquery("UPDATE ".DB_FORUMS." SET forum_lastpost='0', forum_postcount=forum_postcount-".$post_count.", forum_threadcount=forum_threadcount-1, forum_lastuser='0', forum_lastpost_alias=-1 WHERE forum_id='".$_GET['forum_id']."'");
+			$result = dbquery("UPDATE ".DB_FORUMS." SET forum_lastpost='0', forum_postcount=forum_postcount-".$post_count.", forum_threadcount=forum_threadcount-1, forum_lastuser='0', forum_lastpost_alias='-1' WHERE forum_id='".$_GET['forum_id']."'");
 		}
 
 		$result = dbquery("SELECT thread_lastpost, thread_lastuser, thread_lastpost_alias FROM ".DB_THREADS." WHERE forum_id='".$_POST['new_forum_id']."' AND thread_hidden='0' ORDER BY thread_lastpost DESC LIMIT 1");
 		if (dbrows($result)) {
 			$pdata2 = dbarray($result);
-			$result = dbquery("UPDATE ".DB_FORUMS." SET forum_lastpost='".$pdata2['thread_lastpost']."', forum_postcount=forum_postcount+".$post_count.", forum_threadcount=forum_threadcount+1, forum_lastuser='".$pdata2['thread_lastuser']."', forum_lastpost_alias=".$pdata2['thread_lastpost_alias']." WHERE forum_id='".$_POST['new_forum_id']."'");
+			$result = dbquery("UPDATE ".DB_FORUMS." SET forum_lastpost='".$pdata2['thread_lastpost']."', forum_postcount=forum_postcount+".$post_count.", forum_threadcount=forum_threadcount+1, forum_lastuser='".$pdata2['thread_lastuser']."', forum_lastpost_alias='".$pdata2['thread_lastpost_alias']."' WHERE forum_id='".$_POST['new_forum_id']."'");
 		} else {
-			$result = dbquery("UPDATE ".DB_FORUMS." SET forum_lastpost='0', forum_postcount=forum_postcount+1, forum_threadcount=forum_threadcount+".$post_count.", forum_lastuser='0', forum_lastpost_alias=-1 WHERE forum_id='".$_POST['new_forum_id']."'");
+			$result = dbquery("UPDATE ".DB_FORUMS." SET forum_lastpost='0', forum_postcount=forum_postcount+1, forum_threadcount=forum_threadcount+".$post_count.", forum_lastuser='0', forum_lastpost_alias='-1' WHERE forum_id='".$_POST['new_forum_id']."'");
 		}
 
 		echo "<div style='text-align:center'><br />\n".$locale['452']."<br /><br />\n";

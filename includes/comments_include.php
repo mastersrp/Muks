@@ -128,8 +128,8 @@ function showcomments($ctype, $cdb, $ccol, $cid, $clink) {
 		}
 		if (!isset($_GET['c_start']) || !isnum($_GET['c_start'])) { $_GET['c_start'] = 0; }
 		$result = dbquery(
-			"SELECT tcm.comment_id, tcm.comment_name, tcm.comment_message, tcm.comment_datestamp,
-					tcu.user_name, tcu.user_status
+			"SELECT tcm.comment_id, tcm.comment_name, tcm.comment_message, tcm.comment_datestamp, tcm.comment_type,
+					tcu.user_name, tcu.user_avatar, tcu.user_status
 			FROM ".DB_COMMENTS." tcm
 			LEFT JOIN ".DB_USERS." tcu ON tcm.comment_name=tcu.user_id
 			WHERE comment_item_id='".$cid."' AND comment_type='".$ctype."' AND comment_hidden='0'
@@ -149,6 +149,13 @@ function showcomments($ctype, $cdb, $ccol, $cid, $clink) {
 				} else {
 					$c_arr['c_con'][$i]['comment_name'] = $data['comment_name'];
 				}
+				
+				//Add user avatar in comments new feature in v7.02.04
+				if ($data['user_avatar'] && file_exists(IMAGES."avatars/".$data['user_avatar']) && $data['user_status']!=6 && $data['user_status']!=5) {
+					$c_arr['c_con'][$i]['user_avatar'] = "<img src='".IMAGES."avatars/".$data['user_avatar']."' width='50' height='50' alt='".$data['comment_name']."' />";
+				} else {
+					$c_arr['c_con'][$i]['user_avatar'] = "<img src='".IMAGES."avatars/noavatar50.png' alt='".$data['comment_name']."' />";
+				}
 				$c_arr['c_con'][$i]['comment_datestamp'] = $locale['global_071'].showdate("longdate", $data['comment_datestamp']);
 				$c_arr['c_con'][$i]['comment_message'] = "<!--comment_message-->\n".nl2br(parseubb(parsesmileys($data['comment_message'])));
 
@@ -158,6 +165,7 @@ function showcomments($ctype, $cdb, $ccol, $cid, $clink) {
 					$c_arr['c_con'][$i]['edit_dell'] .= $locale['c108']."</a> |\n";
 					$c_arr['c_con'][$i]['edit_dell'] .= "<a href='".FUSION_REQUEST."&amp;c_action=delete&amp;comment_id=".$data['comment_id']."'>";
 					$c_arr['c_con'][$i]['edit_dell'] .= $locale['c109']."</a>";
+					$c_arr['c_con'][$i]['edit_dell'] .= " | <a href='/report.php?action=new&amp;comment_id=".$data['comment_id']."&amp;comment_type=".$data['comment_type']."'>Anmeld</a>";
 				}
 				$settings['comments_sorting'] == "ASC" ? $i++ :	$i--;
 			}

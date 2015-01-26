@@ -28,19 +28,16 @@ echo "<!--pre_forum_idx--><table cellpadding='0' cellspacing='1' width='100%' cl
 
 $forum_list = ""; $current_cat = "";
 $result = dbquery(
-	"SELECT f.*, u.user_id, u.user_name, u.user_status, u.user_aliases, f2.forum_name AS forum_cat_name
+	"SELECT f.*, f2.forum_name AS forum_cat_name, u.user_aliases, u.user_id, u.user_name, u.user_status
 	FROM ".DB_FORUMS." f
 	LEFT JOIN ".DB_FORUMS." f2 ON f.forum_cat = f2.forum_id
 	LEFT JOIN ".DB_USERS." u ON f.forum_lastuser = u.user_id
-	WHERE (".groupaccess('f.forum_access')." OR ".groupaccess('f.forum_moderators').") AND f.forum_cat!='0'
+	WHERE ".groupaccess('f.forum_access')." AND f.forum_cat!='0'
 	GROUP BY forum_id ORDER BY f2.forum_order ASC, f.forum_order ASC"
 );
-
-// 	$forumcats = array(1 => 'Starten af siden', 8 => 'Generel', 12 => 'Følelser', 16 => 'Samfund', 19 => 'Medier', 23 => 'Fritid', 28 => 'Debat om muks', 32 => 'Interne fora', 40 => 'Internt');
-
+	
 if (dbrows($result) != 0) {
 	while ($data = dbarray($result)) {
-//		$data['forum_cat_name'] = isset($forumcats[$data['forum_cat']]) ? $forumcats[$data['forum_cat']] : '-';
 		if ($data['forum_cat_name'] != $current_cat) {
 			$current_cat = $data['forum_cat_name'];
 			echo "<tr>\n<td colspan='2' class='forum-caption forum_cat_name'><!--forum_cat_name-->".$data['forum_cat_name']."</td>\n";
@@ -49,14 +46,7 @@ if (dbrows($result) != 0) {
 			echo "<td width='1%' class='forum-caption' style='white-space:nowrap'>".$locale['404']."</td>\n";
 			echo "</tr>\n";
 		}
-		$moderators = "";
-		if ($data['forum_moderators']) {
-			$mod_groups = explode(".", $data['forum_moderators']);
-			foreach ($mod_groups as $mod_group) {
-				if ($moderators) $moderators .= ", ";
-				$moderators .= $mod_group<101 ? "<a href='".BASEDIR."profile.php?group_id=".$mod_group."'>".getgroupname($mod_group)."</a>" : getgroupname($mod_group);
-			}
-		}
+
 		$forum_match = "\|".$data['forum_lastpost']."\|".$data['forum_id'];
 		if ($data['forum_lastpost'] > $lastvisited) {
 			if (iMEMBER && ($data['forum_lastuser'] == $userdata['user_id'] || preg_match("({$forum_match}\.|{$forum_match}$)", $userdata['user_threads']))) {
@@ -70,9 +60,8 @@ if (dbrows($result) != 0) {
 		echo "<tr>\n";
 		echo "<td align='center' width='1%' class='tbl2' style='white-space:nowrap'>$fim</td>\n";
 		echo "<td class='tbl1 forum_name'><!--forum_name--><a href='viewforum.php?forum_id=".$data['forum_id']."'>".$data['forum_name']."</a><br />\n";
-		if ($data['forum_description'] || $moderators) {
-			echo "<span class='small'>".$data['forum_description'].($data['forum_description'] && $moderators ? "<br />\n" : "");
-			// echo ($moderators ? "<strong>".$locale['411']."</strong>".$moderators."</span>\n" : "</span>\n")."\n";
+		if ($data['forum_description']) {
+			echo "<span class='small'>".nl2br(parseubb($data['forum_description']));
 		}
 		echo "</td>\n";
 		echo "<td align='center' width='1%' class='tbl2' style='white-space:nowrap'>".$data['forum_threadcount']."</td>\n";

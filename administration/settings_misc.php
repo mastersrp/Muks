@@ -41,6 +41,9 @@ if (isset($_POST['savesettings'])) {
 	if (!$result) { $error = 1; }
 	$result = dbquery("UPDATE ".DB_SETTINGS." SET settings_value='".stripinput($_POST['smtp_port'])."' WHERE settings_name='smtp_port'");
 	if (!$result) { $error = 1; }
+	$smtp_auth = isset($_POST['smtp_auth']) && !empty($_POST['smtp_username']) && !empty($_POST['smtp_password']) ? 1 : 0;
+	$result = dbquery("UPDATE ".DB_SETTINGS." SET settings_value='".$smtp_auth."' WHERE settings_name='smtp_auth'");
+	if (!$result) { $error = 1; }
 	$result = dbquery("UPDATE ".DB_SETTINGS." SET settings_value='".stripinput($_POST['smtp_username'])."' WHERE settings_name='smtp_username'");
 	if (!$result) { $error = 1; }
 	$result = dbquery("UPDATE ".DB_SETTINGS." SET settings_value='".stripinput($_POST['smtp_password'])."' WHERE settings_name='smtp_password'");
@@ -56,6 +59,8 @@ if (isset($_POST['savesettings'])) {
 	$result = dbquery("UPDATE ".DB_SETTINGS." SET settings_value='".(isnum($_POST['rendertime_enabled']) ? $_POST['rendertime_enabled'] : "0")."' WHERE settings_name='rendertime_enabled'");
 	if (!$result) { $error = 1; }
 	$result = dbquery("UPDATE ".DB_SETTINGS." SET settings_value='".stripinput($_POST['comments_sorting'])."' WHERE settings_name='comments_sorting'");
+	if (!$result) { $error = 1; }
+	$result = dbquery("UPDATE ".DB_SETTINGS." SET settings_value='".(isnum($_POST['comments_avatar']) ? $_POST['comments_avatar'] : "0")."' WHERE settings_name='comments_avatar'");
 	if (!$result) { $error = 1; }
 
 	redirect(FUSION_SELF.$aidlink."&error=".$error);
@@ -75,6 +80,8 @@ echo "<td width='50%' class='tbl'><input type='text' name='smtp_host' value='".$
 echo "</tr>\n<tr>\n";
 echo "<td width='50%' class='tbl'>".$locale['674']."</td>\n";
 echo "<td width='50%' class='tbl'><input type='text' name='smtp_port' value='".$settings['smtp_port']."' maxlength='10' class='textbox' style='width:200px;' /></td>\n";
+echo "</tr>\n<tr>\n";
+echo "<td colspan='2' class='tbl2'><label><input type='checkbox' value='yes' id='smtp-auth' name='smtp_auth'".($settings['smtp_auth']?' checked="checked"':'')." /> ".$locale['698']."</label></td>\n";
 echo "</tr>\n<tr>\n";
 echo "<td width='50%' class='tbl'>".$locale['666']."</td>\n";
 echo "<td width='50%' class='tbl'><input type='text' name='smtp_username' value='".$settings['smtp_username']."' maxlength='100' class='textbox' style='width:200px;' autocomplete='off' /></td>\n";
@@ -98,6 +105,12 @@ echo "<td width='50%' class='tbl'>".$locale['684']."</td>\n";
 echo "<td width='50%' class='tbl'><select name='comments_sorting' class='textbox'>\n";
 echo "<option value='ASC'".($settings['comments_sorting'] == "ASC" ? " selected='selected'" : "").">".$locale['685']."</option>\n";
 echo "<option value='DESC'".($settings['comments_sorting'] == "DESC" ? " selected='selected'" : "").">".$locale['686']."</option>\n";
+echo "</select></td>\n";
+echo "</tr>\n<tr>\n";
+echo "<td width='50%' class='tbl'>".$locale['656']."</td>\n";
+echo "<td width='50%' class='tbl'><select name='comments_avatar' class='textbox'>\n";
+echo "<option value='1'".($settings['comments_avatar'] == "1" ? " selected='selected'" : "").">".$locale['518']."</option>\n";
+echo "<option value='0'".($settings['comments_avatar'] == "0" ? " selected='selected'" : "").">".$locale['519']."</option>\n";
 echo "</select></td>\n";
 echo "</tr>\n<tr>\n";
 echo "<td width='50%' class='tbl'>".$locale['672']."</td>\n";

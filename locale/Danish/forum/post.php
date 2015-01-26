@@ -39,7 +39,7 @@ $locale['450'] = "Fejl: Din session er udløbet, log på igen og skriv et nyt indl
 $locale['451'] = "Følg med i denne debat";
 $locale['452'] = "Du bliver nu underrettet, når der er nye indlæg";
 $locale['453'] = "Du følger ikke længere med i denne debat";
-$locale['454'] = "Dette indlæg er låst.";
+$locale['454'] = "Dette indlæg er låst. Kontakt ordstyreren for yderligere information.";
 $locale['455'] = "Du må først redigere et indlæg %d minut(ter) efter at du har gemt det.";
 
 // Post Form

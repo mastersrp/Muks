@@ -35,13 +35,6 @@ if (isset($_GET['error']) && isnum($_GET['error']) && !isset($message)) {
 
 if (isset($_POST['savesettings'])) {
 	$error = 0;
-	if (isnum($_POST['newsperpage'])) {
-		if ($_POST['newsperpage'] % 2 == 0) {
-			$_POST['newsperpage']++;
-		}
-	} else {
-		$_POST['newsperpage'] = 11;
-	}
 	$result = dbquery("UPDATE ".DB_SETTINGS." SET settings_value='".(isnum($_POST['newsperpage']) && $_POST['newsperpage'] > 0 ? $_POST['newsperpage'] : "11")."' WHERE settings_name='newsperpage'");
 	if (!$result) { $error = 1; }
 	$result = dbquery("UPDATE ".DB_SETTINGS." SET settings_value='".(isnum($_POST['articles_per_page']) && $_POST['articles_per_page'] > 0 ? $_POST['articles_per_page'] : "15")."' WHERE settings_name='articles_per_page'");
@@ -65,7 +58,7 @@ opentable($locale['400']);
 echo "<form name='settingsform' method='post' action='".FUSION_SELF.$aidlink."'>\n";
 echo "<table cellpadding='0' cellspacing='0' width='500' class='center'>\n<tr>\n";
 echo "<td width='50%' class='tbl'>".$locale['669'].":</td>\n";
-echo "<td width='50%' class='tbl'><input type='text' name='newsperpage' value='".$settings2['newsperpage']."' maxlength='2' class='textbox' style='width:50px;' /> (".$locale['670'].")</td>\n";
+echo "<td width='50%' class='tbl'><input type='text' name='newsperpage' value='".$settings2['newsperpage']."' maxlength='2' class='textbox' style='width:50px;' /></td>\n";
 echo "</tr>\n<tr>\n";
 echo "<td width='50%' class='tbl'>".$locale['910'].":</td>\n";
 echo "<td width='50%' class='tbl'><input type='text' name='articles_per_page' value='".$settings2['articles_per_page']."' maxlength='2' class='textbox' style='width:50px;' /></td>\n";

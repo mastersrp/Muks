@@ -38,11 +38,11 @@ if (isset($_GET['error']) && isnum($_GET['error']) && !isset($message)) {
 if (isset($_POST['saveoptions'])) {
 	$error = 0;
 	dbquery("UPDATE ".DB_MESSAGES_OPTIONS." SET
-		pm_email_notify = '".$_POST['pm_email_notify']."',
-		pm_save_sent = '".$_POST['pm_save_sent']."',
-		pm_inbox = '".$_POST['pm_inbox']."',
-		pm_sentbox = '".$_POST['pm_sentbox']."',
-		pm_savebox = '".$_POST['pm_savebox']."'
+		pm_email_notify = '".(isnum($_POST['pm_email_notify']) ? $_POST['pm_email_notify'] : 0)."',
+		pm_save_sent = '".(isnum($_POST['pm_save_sent']) ? $_POST['pm_save_sent'] : 0)."',
+		pm_inbox = '".(isnum($_POST['pm_inbox']) ? $_POST['pm_inbox'] : 0)."',
+		pm_sentbox = '".(isnum($_POST['pm_sentbox']) ? $_POST['pm_sentbox'] : 0)."',
+		pm_savebox = '".(isnum($_POST['pm_savebox']) ? $_POST['pm_savebox'] : 0)."'
 		WHERE user_id='0'"
 	);
 	if (!$result) { $error = 1; }

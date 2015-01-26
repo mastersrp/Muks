@@ -45,9 +45,9 @@ if (isset($_POST['view']) && (isset($_POST['viewpoll_id']) && isnum($_POST['view
 		for ($i=0; $i <= 9; $i++) {
 			if ($data["poll_opt_".$i]) { $viewpoll_option[$i] = $data["poll_opt_".$i]; }
 		}
-		$poll_archive = ""; $i = 0;
+		$poll_archive = ""; $i = 0; $viewpoll_option_counted = count($viewpoll_option);
 		$viewpoll_votes = dbcount("(vote_opt)", DB_POLL_VOTES, "poll_id='".$data['poll_id']."'");
-		while ($i < count($viewpoll_option)) {
+		while ($i < $viewpoll_option_counted) {
 			$viewnum_votes = dbcount("(vote_opt)", DB_POLL_VOTES, "vote_opt='$i' AND poll_id='".$data['poll_id']."'");
 			$viewopt_votes = ($viewpoll_votes ? number_format(100 / $viewpoll_votes * $viewnum_votes) : 0);
 			$poll_archive .= $viewpoll_option[$i]."<br />\n";
@@ -74,7 +74,6 @@ if (isset($_POST['view']) && (isset($_POST['viewpoll_id']) && isnum($_POST['view
 			}
 			$i++;
 		}
-		tablebreak();
 		opentable($locale['global_141']);
 		echo "<table align='center' width='200' cellspacing='0' cellpadding='0' class='tbl'>\n<tr>\n";
 		echo "<td>".$data['poll_title']."\n<hr />\n".$poll_archive."\n";

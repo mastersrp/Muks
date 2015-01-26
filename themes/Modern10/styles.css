@@ -414,6 +414,11 @@ div.news-item div.footer {
 
 /* General table properties */
 
+.comment-avatar {
+	padding-right: 6px;
+	float: left;
+}
+
 .center {
 	margin: 0 auto;
 }

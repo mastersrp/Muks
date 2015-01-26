@@ -46,7 +46,7 @@ $p_name = array(
 
 // Get panels data to array
 $panels_cache = array();
-$p_result = dbquery("SELECT * FROM ".DB_PANELS." WHERE panel_status='1' ORDER BY panel_side, panel_order");
+$p_result = dbquery("SELECT panel_name, panel_filename, panel_content, panel_side, panel_type, panel_access, panel_display, panel_url_list, panel_restriction FROM ".DB_PANELS." WHERE panel_status='1' ORDER BY panel_side, panel_order");
 while ($panel_data = dbarray($p_result)) {
 	if (checkgroup($panel_data['panel_access'])) { $panels_cache[$panel_data['panel_side']][] = $panel_data; }
 }
@@ -58,10 +58,10 @@ foreach ($p_name as $p_key => $p_side) {
 		if (!defined("ADMIN_PANEL")) {
 			if (check_panel_status($p_side['side'])) {
 				foreach ($panels_cache[$p_key + 1] as $p_data) {
-				$url_arr = explode("\r\n", $p_data['panel_url_list']);
+					$url_arr = explode("\r\n", $p_data['panel_url_list']);
 					if ($p_data['panel_url_list'] == ""
-						|| ($p_data['panel_restriction'] == 1 && !in_array(TURE_PHP_SELF, $url_arr))
-						|| ($p_data['panel_restriction'] == 0 && in_array(TURE_PHP_SELF, $url_arr)))
+						|| ($p_data['panel_restriction'] == 1 && (!in_array(TRUE_PHP_SELF.(FUSION_QUERY ? "?".FUSION_QUERY : ""), $url_arr) || !in_array(TRUE_PHP_SELF, $url_arr)))
+						|| ($p_data['panel_restriction'] == 0 && (in_array(TRUE_PHP_SELF.(FUSION_QUERY ? "?".FUSION_QUERY : ""), $url_arr)  || in_array(TRUE_PHP_SELF, $url_arr))))
 					{
 						if (($p_data['panel_side'] != 2 && $p_data['panel_side'] != 3)
 							|| $p_data['panel_display'] == 1 || $settings['opening_page'] == START_PAGE)
@@ -76,6 +76,7 @@ foreach ($p_name as $p_key => $p_side) {
 						}
 					}
 				}
+				unset($p_data);
 			}
 		} else if ($p_key == 0) {
 			require_once ADMIN."navigation.php";
@@ -83,7 +84,7 @@ foreach ($p_name as $p_key => $p_side) {
 		define($p_side['name'], ($p_side['name'] === 'U_CENTER' ? $admin_mess : '').ob_get_contents());
 		ob_end_clean();
 	} else {
-		define($p_side['name'], '');
+		define($p_side['name'], ($p_side['name'] === 'U_CENTER' ? $admin_mess : ''));
 	}
 }
 unset($panels_cache);

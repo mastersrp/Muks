@@ -90,10 +90,16 @@ if (!empty($result)) {
 		if (dbrows($result)) {
 			$editlist = ""; $sel = "";
 			while ($data = dbarray($result)) {
-				if ((isset($_POST['article_id']) && isnum($_POST['article_id'])) || (isset($_GET['article_id']) && isnum($_GET['article_id']))) {
-					$article_id = isset($_POST['article_id']) ? $_POST['article_id'] : $_GET['article_id'];
+				if (isset($_POST['article_id']) && isnum($_POST['article_id'])) {
+					$article_id = $_POST['article_id'];
 					$sel = ($article_id == $data['article_id'] ? " selected='selected'" : "");
-				} else {
+				}
+				elseif (isset($_GET['article_id']) && isnum($_GET['article_id']))
+				{
+					$article_id = $_GET['article_id'];
+					$sel = ($article_id == $data['article_id'] ? " selected='selected'" : "");
+				}
+				else {
 					$sel = "";
 				}
 				$editlist .= "<option value='".$data['article_id']."'".$sel.">".($data['article_draft'] ? $locale['433']." " : "").$data['article_subject']."</option>\n";
@@ -164,7 +170,7 @@ if (!empty($result)) {
 		echo "</tr>\n";
 		if ($settings['tinymce_enabled'] != 1) {
 			echo "<tr>\n<td class='tbl'></td><td class='tbl'>\n";
-			echo "<input type='button' value='".$locale['432']."' class='button' style='width:80px;' onclick=\"insertText('body2', '<--PAGEBREAK-->');\" />\n";
+			echo "<input type='button' value='".$locale['432']."' class='button' onclick=\"insertText('body2', '&lt;!--PAGEBREAK--&gt;');\" />\n";
 			echo display_html("inputform", "body2", true, true, true, IMAGES_A);
 			echo "</td>\n</tr>\n";
 		}

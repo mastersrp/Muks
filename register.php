@@ -44,29 +44,9 @@ if (isset($_GET['email']) && isset($_GET['code'])) {
 			return unserialize($var);
 		}
 
-		$alias_randstrsym = '';
-		function alias_randstr($l=25)
-		{
-			global $alias_randstrsym;
-			if ($alias_randstrsym == '') { $alias_randstrsym = 'abcdefghijkmnpqrstuvwxyzABCDEFGHIJKMNPQRSTUVWXYZ23456789æøåÆØÅ'; $alias_randstrsym .= $alias_randstrsym.$alias_randstrsym; }
-			return substr(str_shuffle($alias_randstrsym),0,$l);
-		}
-
-		$alias_keys = array(alias_randstr(6),alias_randstr(6),alias_randstr(6));
-		$alias_i1 = 0;
-		while (dbrows(dbquery('SELECT user_aliases FROM '.DB_USERS.' WHERE user_aliases LIKE "%,@@_'.$alias_keys[0].',%" OR user_aliases LIKE "%,@@_'.$alias_keys[1].',%" OR user_aliases LIKE "%,@@_'.$alias_keys[2].',%"')) && $alias_i1 < 20)
-		{
-			$alias_keys = array(alias_randstr(6),alias_randstr(6),alias_randstr(6));
-			$alias_i1++;
-		}
-		if ($alias_i1 == 20)
-		{
-			mysql_query("INSERT INTO ".DB_MESSAGES." (message_to, message_from, message_subject, message_smileys, message_message, message_read, message_datestamp, message_folder) VALUES (1, 1, 'Registration fejlede: Alias', 'n', 'Registration fejlede: Aliaser kunne ikke findes', 0, ".time().", 0)");
-			redirect("/opret-alias-fejl.html");
-		}
 		$data = dbarray($result);
 		$user_info = unserializeFix(stripslashes($data['user_info']));
-		$result = dbquery("INSERT INTO ".DB_USERS." (".$user_info['user_field_fields'].", user_aliases) VALUES (".$user_info['user_field_inputs'].", ',@@_".$alias_keys[0].",@@_".$alias_keys[1].",@@_".$alias_keys[2].",')");
+		$result = dbquery("INSERT INTO ".DB_USERS." (".$user_info['user_field_fields'].") VALUES (".$user_info['user_field_inputs'].")");
 		$result = dbquery("DELETE FROM ".DB_NEW_USERS." WHERE user_code='".$_GET['code']."' LIMIT 1");
 
 		opentable($locale['u155']);
@@ -80,6 +60,7 @@ if (isset($_GET['email']) && isset($_GET['code'])) {
 		redirect("index.php");
 	}
 } elseif (isset($_POST['register'])) {
+
 	$userInput = new UserFieldsInput();
 	$userInput->validation 				= $settings['display_validation'];
 	$userInput->emailVerification 		= $settings['email_verification'];

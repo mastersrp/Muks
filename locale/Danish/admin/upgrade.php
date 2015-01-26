@@ -16,13 +16,17 @@ $locale['437'] = "Downloadindstillinger";
 // v7.02 new locales
 $locale['440'] = "Foreslå download";
 $locale['441'] = "Replikboks";
+$locale['442'] = "robots.txt";
+$locale['443'] = "Brugerlog";
+$locale['444'] = "Rediger administrativt kodeord";
+$locale['445'] = "Fejllog";
 //Upgrade locales
 $locale['500'] = "En %s opgradering til databasen er tilgængelig.";
 $locale['501'] = "Klik ganske enkelt på opgrader for at gennemføre den.";
 $locale['502'] = "Opgraderingen er gennemført.";
 $locale['503'] = "større";
 $locale['504'] = "mindre";
+$locale['505'] = "Erstat disse linjer i filen config.php!";
 
-$locale['mysql_charset'] = "latin1";
-$locale['mysql_collate'] = "latin1_swedish_ci";
+$locale['600'] = "Du skal redigere din config.php, og erstatte indholdet med følgende kode:";
 ?>

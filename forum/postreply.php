@@ -16,7 +16,7 @@
 | written permission from the original author(s).
 +--------------------------------------------------------*/
 if (!defined("IN_FUSION")) { die("Access Denied"); }
-
+$post_alias_preview = -1;
 if (isset($_POST['previewreply'])) {
 	$message = trim(stripinput(censorwords($_POST['message'])));
 	$disable_smileys_check = isset($_POST['disable_smileys']) || preg_match("#(\[code\](.*?)\[/code\]|\[geshi=(.*?)\](.*?)\[/geshi\]|\[php\](.*?)\[/php\])#si", $message) ? " checked='checked'" : "";
@@ -45,14 +45,14 @@ if (isset($_POST['previewreply'])) {
 }
 if (isset($_POST['postreply'])) {
 	$message = trim(stripinput(censorwords($_POST['message'])));
-	$post_alias = isset($_POST['post_alias']) ? (preg_match('/^[0-2]$/',$_POST['post_alias']) ? $_POST['post_alias'] : -1) : -1;
+	$post_alias = isset($_POST['post_alias']) ? $_POST['post_alias'] : -1;
 	$flood = false; $error = 0;
 	$smileys = isset($_POST['disable_smileys']) || preg_match("#(\[code\](.*?)\[/code\]|\[geshi=(.*?)\](.*?)\[/geshi\]|\[php\](.*?)\[/php\])#si", $message) ? "0" : "1";
 	if (iMEMBER) {
 		if ($message != "") {
 			require_once INCLUDES."flood_include.php";
 			if (!flood_control("post_datestamp", DB_POSTS, "post_author='".$userdata['user_id']."'")) {
-				if ($fdata['forum_merge'] && $tdata['thread_lastuser'] == $userdata['user_id']) {
+				if ($fdata['forum_merge'] && $tdata['thread_lastuser'] == $userdata['user_id'] && (int) $tdata['thread_lastpost_alias'] == (int) $post_alias) {
 					$mergeData = dbarray(dbquery("SELECT post_id, post_message FROM ".DB_POSTS." WHERE thread_id='".$_GET['thread_id']."' ORDER BY post_id DESC"));
 					$mergedMessage = $mergeData['post_message']."\n\n".$locale['520']." ".showdate("longdate", time()).":\n".$message;
 
@@ -68,47 +68,20 @@ if (isset($_POST['postreply'])) {
 					$threadCount = "";
 					$postCount = "";
 				} else {
-					$result = dbquery("INSERT INTO ".DB_POSTS." (forum_id, thread_id, post_message, post_smileys, post_author, post_datestamp, post_ip, post_ip_type, post_edituser, post_edittime, post_replynum, post_firstpost, post_alias) VALUES ('".$_GET['forum_id']."', '".$_GET['thread_id']."', '$message', '$smileys', '".$userdata['user_id']."', '".time()."', '".USER_IP."', '".USER_IP_TYPE."', '0', '0', '".$tdata['thread_nextrid']."', 0, ".$post_alias.")");
+					$result = dbquery("INSERT INTO ".DB_POSTS." (forum_id, thread_id, post_message, post_smileys, post_author, post_datestamp, post_ip, post_ip_type, post_edituser, post_edittime, post_editreason, post_replynum, post_firstpost, post_alias) VALUES ('".$_GET['forum_id']."', '".$_GET['thread_id']."', '$message', '$smileys', '".$userdata['user_id']."', '".time()."', '".USER_IP."', '".USER_IP_TYPE."', '0', '0', '', '".$tdata['thread_nextrid']."', 0, ".$post_alias.")");
 					$post_id = mysql_insert_id();
-					$result = dbquery("UPDATE ".DB_USERS." SET user_posts=user_posts+1 WHERE user_id='".$userdata['user_id']."'");
+					if ($post_alias < 0)
+					{
+						$result = dbquery("UPDATE ".DB_USERS." SET user_posts=user_posts+1 WHERE user_id='".$userdata['user_id']."'");
+					}
 					$threadCount = "thread_postcount=thread_postcount+1,";
 					$postCount = "forum_postcount=forum_postcount+1,";
 				}
-				$result = dbquery("UPDATE ".DB_FORUMS." SET forum_lastpost='".time()."', ".$postCount." forum_lastuser='".$userdata['user_id']."', forum_lastpost_alias = ".$post_alias." WHERE forum_id='".$_GET['forum_id']."'");
-				$result = dbquery("UPDATE ".DB_THREADS." SET thread_lastpost='".time()."', thread_lastpostid='".$post_id."', ".$threadCount." thread_lastuser='".$userdata['user_id']."', thread_nextrid = thread_nextrid + 1, thread_lastpost_alias = ".$post_alias." WHERE thread_id='".$_GET['thread_id']."'");
+				$result = dbquery("UPDATE ".DB_FORUMS." SET forum_lastpost='".time()."', ".$postCount." forum_lastuser='".$userdata['user_id']."', forum_lastpost_alias = '".$post_alias."' WHERE forum_id='".$_GET['forum_id']."'");
+				$result = dbquery("UPDATE ".DB_THREADS." SET thread_lastpost='".time()."', thread_lastpostid='".$post_id."', ".$threadCount." thread_lastuser='".$userdata['user_id']."', thread_nextrid = thread_nextrid + 1, thread_lastpost_alias = '".$post_alias."' WHERE thread_id='".$_GET['thread_id']."'");
 				if ($settings['thread_notify'] && isset($_POST['notify_me'])) {
 					if (!dbcount("(thread_id)", DB_THREAD_NOTIFY, "thread_id='".$_GET['thread_id']."' AND notify_user='".$userdata['user_id']."'")) {
 						$result = dbquery("INSERT INTO ".DB_THREAD_NOTIFY." (thread_id, notify_datestamp, notify_user, notify_status) VALUES('".$_GET['thread_id']."', '".time()."', '".$userdata['user_id']."', '1')");
-					}
-				}
-
-				if ($fdata['forum_attach'] && checkgroup($fdata['forum_attach'])) {
-						// $attach = $_FILES['attach'];
-					foreach($_FILES as $attach){
-						if ($attach['name'] != "" && !empty($attach['name']) && is_uploaded_file($attach['tmp_name'])) {
-							$attachname = stripfilename(substr($attach['name'], 0, strrpos($attach['name'], ".")));
-							$attachext = strtolower(strrchr($attach['name'],"."));
-							if (preg_match("/^[-0-9A-Z_\[\]]+$/i", $attachname) && $attach['size'] <= $settings['attachmax']) {
-								$attachtypes = explode(",", $settings['attachtypes']);
-								if (in_array($attachext, $attachtypes)) {
-									$attachname .= $attachext;
-									$attachname = attach_exists(strtolower($attachname));
-									move_uploaded_file($attach['tmp_name'], FORUM."attachments/".$attachname);
-									chmod(FORUM."attachments/".$attachname,0644);
-									if (in_array($attachext, $imagetypes) && (!@getimagesize(FORUM."attachments/".$attachname) || !@verify_image(FORUM."attachments/".$attachname))) {
-										unlink(FORUM."attachments/".$attachname);
-										$error = 1;
-									}
-									if (!$error) { $result = dbquery("INSERT INTO ".DB_FORUM_ATTACHMENTS." (thread_id, post_id, attach_name, attach_ext, attach_size) VALUES ('".$_GET['thread_id']."', '".$post_id."', '$attachname', '$attachext', '".$attach['size']."')"); }
-								} else {
-									@unlink($attach['tmp_name']);
-									$error = 1;
-								}
-							} else {
-								@unlink($attach['tmp_name']);
-								$error = 2;
-							}
-						}
 					}
 				}
 			} else {
@@ -144,7 +117,7 @@ if (isset($_POST['postreply'])) {
 		);
 		if (dbrows($result)) {
 			$data = dbarray($result);
-			$message = "[quote][url=".$settings['siteurl']."forum/viewthread.php?thread_id=".$_GET['thread_id']."&amp;pid=".$_GET['quote']."#post_".$_GET['quote']."][b]".'#'.$data['post_replynum'].' '.$locale['429']."[/b][/url]\n\n".strip_bbcodes($data['post_message'])."[/quote]";
+			$message = "[quote][url=".$settings['siteurl']."forum/viewthread.php?thread_id=".$_GET['thread_id']."&amp;pid=".$_GET['quote']."#post_".$_GET['quote']."][b]#".$data['post_replynum'].$locale['429']."[/b][/url]\n\n".strip_bbcodes($data['post_message'])."[/quote]";
 		}
 	}
 	add_to_title($locale['global_201'].$locale['403']);
@@ -166,27 +139,9 @@ if (isset($_POST['postreply'])) {
 	if ($settings['thread_notify']) {
 		echo "<br />\n<label><input type='checkbox' name='notify_me' value='1'".$notify_checked." /> ".$locale['486']."</label>";
 	}
-	if (!isset($post_alias_preview)) { $post_alias_preview = -1; }
-	echo '<br />Hvis du vil bruge alias for dette indlæg, vælg da et:<br />';
+	echo '<br />Hvis du vil bruge alias for dette indlÃ¦g, vÃ¦lg da et:<br />';
 	echo '<select name="post_alias"><option value="-1"'.($post_alias_preview == -1 ? ' selected="selected"' : '').'>Brug ikke alias</option><option value="0"'.($post_alias_preview == 0 ? ' selected="selected"' : '').'>1: '.$userdata['user_aliases'][0].'</option><option value="1"'.($post_alias_preview == 1 ? ' selected="selected"' : '').'>2: '.$userdata['user_aliases'][1].'</option><option value="2"'.($post_alias_preview == 2 ? ' selected="selected"' : '').'>3: '.$userdata['user_aliases'][2].'</option></select>';
 	echo "</td>\n</tr>\n";
-	if ($fdata['forum_attach'] && checkgroup($fdata['forum_attach'])) {
-		add_to_head("<script type='text/javascript' src='".INCLUDES."multi_attachment.js'></script>\n");
-		echo "<tr>\n<td width='145' class='tbl2'>".$locale['464']."</td>\n";
-		echo "<td class='tbl1'><input id='my_file_element' type='file' name='file_1' class='textbox' style='width:200px;' /><br />\n";
-		echo "<span class='small2'>".sprintf($locale['466'], parsebytesize($settings['attachmax']), str_replace(',', ' ', $settings['attachtypes']), $settings['attachmax_count'])."</span><br />\n";
-		echo "<div id='files_list'></div>\n";
-		echo "<script>\n";
-		echo "/* <![CDATA[ */\n";
-		echo "<!-- Create an instance of the multiSelector class, pass it the output target and the max number of files -->\n";
-		echo "var multi_selector = new MultiSelector( document.getElementById( \"files_list\" ), ".$settings['attachmax_count']." );\n";
-		echo "<!-- Pass in the file element -->\n";
-		echo "multi_selector.addElement( document.getElementById( \"my_file_element\" ) );\n";
-		echo "/* ]]>*/\n";
-		echo "</script>\n";
-		echo "</td>\n";
-		echo "</tr>\n";
-	}
 	echo "<tr>\n<td align='center' colspan='2' class='tbl1'>\n";
 	echo "<input type='submit' name='previewreply' value='".$locale['402']."' class='button' />\n";
 	echo "<input type='submit' name='postreply' value='".$locale['404']."' class='button' />\n";
@@ -212,6 +167,7 @@ if (isset($_POST['postreply'])) {
 			opentable($title);
 				echo "<div style='max-height:350px;overflow:auto;'>\n";
 				echo "<table cellpadding='1' cellspacing='1' width='100%' class='tbl-border forum_thread_table'>\n";
+				$i = $settings['forum_last_posts_reply'];
 				while ($data = dbarray($result)) {
 					$data['user_aliases'] = alias1($data['user_aliases']);
 					$message = $data['post_message'];
@@ -220,18 +176,29 @@ if (isset($_POST['postreply'])) {
 					echo "<tr>\n<td class='tbl2 forum_thread_user_name' style='width:10%'><!--forum_thread_user_name-->".alias2($data['post_alias'],$data['user_aliases'],$data['user_id'], $data['user_name'], $data['user_status'])."</td>\n";
 					echo "<td class='tbl2 forum_thread_post_date'>\n";
 					echo "<div style='float:right' class='small'>\n";
+					echo $i.($i == $settings['forum_last_posts_reply'] ? " (".$locale['431'].")" : "");
 					echo "</div>\n";
 					echo "<div class='small'>".$locale['426'].showdate("forumdate", $data['post_datestamp'])."</div>\n";
 					echo "</td>\n";
 					echo "</tr>\n<tr>\n<td valign='top' class='tbl2 forum_thread_user_info' style='width:10%'>\n";
-					if ($data['user_avatar'] && file_exists(IMAGES."avatars/".$data['user_avatar']) && $data['post_alias'] < 0) {
-						echo "<img src='".IMAGES."avatars/".$data['user_avatar']."' alt='".$locale['430']."' style='height:50px;' />\n";
-					} else {
-						echo "<img src='".IMAGES."avatars/noavatar50.png' alt='".$locale['430']."' />\n";
+
+					if ($data['user_avatar'] && file_exists(IMAGES."avatars/".$data['user_avatar']) && $data['user_status']!=6 && $data['user_status']!=5 && $data['post_alias'] < 0) {
+						echo "<img src='".IMAGES."avatars/".$data['user_avatar']."' alt='".$locale['567']."' /><br /><br />\n";
+					}
+					elseif ($data['post_alias'] >= 0)
+					{
+						echo "<img src='".IMAGES."avatars/noavatar100.png' alt='-' /><br /><br />\n";
+						echo "<span class='small'>";
+						echo 'Alias';
+						echo "</span><br /><br />\n";
+					}
+					else {
+						echo "<img src='".IMAGES."avatars/noavatar100.png' alt='".$locale['567']."' /><br /><br />\n";
 					}
 					echo "</td>\n<td valign='top' class='tbl1 forum_thread_user_post'>\n";
 					echo nl2br($message);
 					echo "</td>\n</tr>\n";
+					$i--;
 				}
 				echo "</table>\n</div>\n";
 			closetable();

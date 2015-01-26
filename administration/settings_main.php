@@ -206,6 +206,10 @@ if (isset($_POST['savesettings'])) {
 		if (!$result) { $error = 1; }
 		$result = dbquery("UPDATE ".DB_ADMIN." SET admin_title='".$locale['247']."' WHERE admin_link='settings_users.php'");
 		if (!$result) { $error = 1; }
+		$result = dbquery("UPDATE ".DB_ADMIN." SET admin_title='".$locale['266']."' WHERE admin_link='user_log.php'");
+		if (!$result) { $error = 1; }
+		$result = dbquery("UPDATE ".DB_ADMIN." SET admin_title='".$locale['267']."' WHERE admin_link='robots.php'");
+		if (!$result) { $error = 1; }
 	}
 	redirect(FUSION_SELF.$aidlink."&error=".$error);
 }

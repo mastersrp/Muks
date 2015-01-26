@@ -37,7 +37,6 @@ class UserFieldsInput {
 	private $_method;
 	private $_noErrors 						= true;
 	private $_userEmail;
-	private $_userHideEmail;
 	private $_userName;
 
 	// Passwords
@@ -62,11 +61,14 @@ class UserFieldsInput {
 	private $_dbValues;
 
 	// User Log System
-    private $_userLogData					= array();
-    private $_userLogFields					= array();
+	private $_userLogData					= array();
+	private $_userLogFields					= array();
 
 	// Settings
 	private $_userNameChange				= true;
+
+	// Flags
+	private $_themeChanged					= false;
 
 	public function saveInsert() {
 		$this->_method = "validate_insert";
@@ -171,12 +173,16 @@ class UserFieldsInput {
 		}
 	}
 
+	public function themeChanged() {
+		return $this->_themeChanged;
+	}
+
 	private function _settUserName() {
 		global $locale;
 		$this->_userName = isset($_POST['user_name']) ? stripinput(trim(preg_replace("/ +/i", " ", $_POST['user_name']))) : "";
 
 		if ($this->_userName != "" && $this->_userName != $this->userData['user_name']) {
-			if (!preg_check("/^[-0-9A-Z_@\sÊ¯Â∆ÿ≈]+$/i", $this->_userName)) {
+			if (!preg_check("/^[-0-9A-Z_@\s]+$/i", $this->_userName)) {
 				$this->_setError("user_name", $locale['u120']);
 			} else {
 				$name_active = dbcount("(user_id)", DB_USERS, "user_name='".$this->_userName."'");
@@ -424,7 +430,8 @@ class UserFieldsInput {
 		global $locale, $settings;
 
 		if (isset($_POST['delAvatar'])) {
-			if (file_exists(IMAGES."avatars/".$this->userData['user_avatar'])) {
+			if ($this->userData['user_avatar'] != "" && file_exists(IMAGES."avatars/".$this->userData['user_avatar']) &&
+				is_file(IMAGES."avatars/".$this->userData['user_avatar']) ) {
 				unlink(IMAGES."avatars/".$this->userData['user_avatar']);
 			}
 			$this->_setDBValue("user_avatar", "");
@@ -437,7 +444,8 @@ class UserFieldsInput {
 				$settings['avatar_ratio'], IMAGES."avatars/", "[".$this->userData['user_id']."]", $settings['avatar_width'], $settings['avatar_height']
 			);
 			if ($avatarUpload['error'] == 0) {
-				if ($this->userData['user_avatar'] != "" && file_exists(IMAGES."avatars/".$this->userData['user_avatar'])) {
+				if ($this->userData['user_avatar'] != "" && file_exists(IMAGES."avatars/".$this->userData['user_avatar']) &&
+					is_file(IMAGES."avatars/".$this->userData['user_avatar']) ) {
 					unlink(IMAGES."avatars/".$this->userData['user_avatar']);
 				}
 				$this->_setDBValue("user_avatar", $avatarUpload['thumb1_name']);
@@ -453,15 +461,12 @@ class UserFieldsInput {
 				$this->_setError("user_avatar", $locale['u183']);
 			}
 		}
-	}
+	}	
 
 	private function _setEmptyFields() {
-		$this->_userHideEmail = isset($_POST['user_hide_email']) && $_POST['user_hide_email'] == 1 ? 1 : 0;
-
 		$userStatus = $this->adminActivation == 1 ? 2 : 0;
 
 		if ($this->_method == "validate_insert") {
-			$this->_setDBValue("user_hide_email", $this->_userHideEmail);
 			$this->_setDBValue("user_avatar", "");
 			$this->_setDBValue("user_posts", 0);
 			$this->_setDBValue("user_threads", 0);
@@ -473,13 +478,31 @@ class UserFieldsInput {
 			$this->_setDBValue("user_groups", "");
 			$this->_setDBValue("user_level", 101);
 			$this->_setDBValue("user_status", $userStatus);
-		} else {
-			$this->_setDBValue("user_hide_email", $this->_userHideEmail);
+			$this->_setDBValue("user_title", 'Bruger');
+			
+			//Alias crap
+			$alias_randstrsym = 'abcdefghijkmnpqrstuvwxyzABCDEFGHIJKMNPQRSTUVWXYZ23456789';
+			$alias_randstrsym = $alias_randstrsym.$alias_randstrsym;
+			
+			$alias_keys = array(substr(str_shuffle($alias_randstrsym),0,6), substr(str_shuffle($alias_randstrsym),0,6), substr(str_shuffle($alias_randstrsym),0,6));
+			$alias_i1 = 0;
+
+			while (dbrows(dbquery('SELECT user_aliases FROM '.DB_USERS.' WHERE user_aliases LIKE "%,@@_'.$alias_keys[0].',%" OR user_aliases LIKE "%,@@_'.$alias_keys[1].',%" OR user_aliases LIKE "%,@@_'.$alias_keys[2].',%"')) && $alias_i1 < 20)
+			{
+				$alias_keys = array(alias_randstr(6),alias_randstr(6),alias_randstr(6));
+				$alias_i1++;
+			}
+			if ($alias_i1 == 20)
+			{
+				mysql_query("INSERT INTO ".DB_MESSAGES." (message_to, message_from, message_subject, message_smileys, message_message, message_read, message_datestamp, message_folder) VALUES (1, 1, 'Registration fejlede: Alias', 'n', 'Registration fejlede: Aliaser kunne ikke findes', 0, ".time().", 0)");
+				redirect("/opret-alias-fejl.html");
+			}
+			$this->_setDBValue("user_aliases", ",@@_".$alias_keys[0].",@@_".$alias_keys[1].",@@_".$alias_keys[2].",");
 		}
 	}
 
 	private function _setCustomUserFieldsData() {
-		global $locale, $settings, $userdata;
+		global $locale, $settings;
 
 		$profile_method = $this->_method;
 
@@ -591,28 +614,7 @@ class UserFieldsInput {
 	private function _setUserDataInput() {
 		global $locale, $settings, $userdata, $aidlink;
 
-		$alias_randstrsym = '';
-		function alias_randstr($l=25)
-		{
-			global $alias_randstrsym;
-			if ($alias_randstrsym == '') { $alias_randstrsym = 'abcdefghijkmnpqrstuvwxyzABCDEFGHIJKMNPQRSTUVWXYZ23456789Ê¯Â∆ÿ≈'; $alias_randstrsym .= $alias_randstrsym.$alias_randstrsym; }
-			return substr(str_shuffle($alias_randstrsym),0,$l);
-		}
-
-		$alias_keys = array(alias_randstr(6),alias_randstr(6),alias_randstr(6));
-		$alias_i1 = 0;
-		while (dbrows(dbquery('SELECT user_aliases FROM '.DB_USERS.' WHERE user_aliases LIKE "%,@@_'.$alias_keys[0].',%" OR user_aliases LIKE "%,@@_'.$alias_keys[1].',%" OR user_aliases LIKE "%,@@_'.$alias_keys[2].',%"')) && $alias_i1 < 20)
-		{
-			$alias_keys = array(alias_randstr(6),alias_randstr(6),alias_randstr(6));
-			$alias_i1++;
-		}
-		if ($alias_i1 == 20)
-		{
-			mysql_query("INSERT INTO ".DB_MESSAGES." (message_to, message_from, message_subject, message_smileys, message_message, message_read, message_datestamp, message_folder) VALUES (1, 1, 'Registration fejlede: Alias', 'n', 'Registration fejlede: Aliaser kunne ikke findes', 0, ".time().", 0)");
-			redirect("/opret-alias-fejl.html");
-		}
-
-		$result = dbquery("INSERT INTO ".DB_USERS." (".$this->_dbFields.", user_aliases) VALUES(".$this->_dbValues.", ',@@_".$alias_keys[0].",@@_".$alias_keys[1].",@@_".$alias_keys[2].",')");
+		$result = dbquery("INSERT INTO ".DB_USERS." (".$this->_dbFields.") VALUES(".$this->_dbValues.")");
 		if ($this->adminActivation) {
 			$this->_completeMessage = $locale['u160']."<br /><br />\n".$locale['u162'];
 		} else {
@@ -644,21 +646,19 @@ class UserFieldsInput {
 	}
 
 	private function _saveUserLog() {
-		global $userdata;
-
 		$i = 0; $sql = "";
 
 		foreach ($this->_userLogData AS $field => $value) {
-			if ($userdata[$field] != $value) {
+			if ($this -> userData[$field] != $value) {
 				if ($i == 0) {
 					$sql = "INSERT INTO ".DB_USER_LOG." (userlog_user_id, userlog_field, userlog_value_new, userlog_value_old, userlog_timestamp) VALUES ";
 				}
-				$sql .= ($i > 0 ? ", " : "")."('".$userdata['user_id']."', '".$field."', '".$value."', '".$userdata[$field]."', '".time()."')";
+				$sql .= ($i > 0 ? ", " : "")."('".$this->userData[$field]."', '".$field."', '".$value."', '".$this->userData[$field]."', '".time()."')";
 				$i++;
 			}
 		}
 
-		if ($sql != "") { $result = dbquery($sql); }
+        	if ($sql != "") { $result = dbquery($sql); }
 	}
 }
 ?>
